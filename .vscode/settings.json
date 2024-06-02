@@ -1,0 +1,31 @@
+{
+    "files.associations": {
+        "Kconfig": "cmake",
+        "ble.h": "c",
+        "time.h": "c",
+        "adc_cali.h": "c",
+        "adc.h": "c",
+        "esp_err.h": "c",
+        "adc_oneshot_hal.h": "c",
+        "mutex": "c",
+        "adc_oneshot.h": "c",
+        "adc_types.h": "c",
+        "soc.h": "c",
+        "soc_caps.h": "c",
+        "led.h": "c",
+        "stdint.h": "c",
+        "ledc.h": "c",
+        "esp_heap_caps.h": "c",
+        "clk_tree_defs.h": "c",
+        "adc_cali_scheme.h": "c",
+        "esp_partition.h": "c",
+        "esp_flash_partitions.h": "c",
+        "flash_op.h": "c",
+        "esp_flash.h": "c",
+        "spi_flash_types.h": "c",
+        "spi_flash.h": "c",
+        "esp_spi_flash.h": "c",
+        "spi_flash_mmap.h": "c",
+        "chrono": "c"
+    }
+}

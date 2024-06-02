@@ -1,0 +1,53 @@
+{
+    "configurations": [
+        {
+            "name": "esp32 workspace",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "D:\\esp-idf\\components\\bt\\**",
+                "D:\\esp-idf\\components\\freertos\\**",
+                "D:\\esp-idf\\components\\xtensa\\**",
+                "D:\\esp-idf\\components\\spi_flash\\**",
+                "D:\\esp-idf\\components\\bootloader\\**",
+                "D:\\esp-idf\\components\\bootloader_support\\**",
+                "D:\\esp-idf\\components\\esp_wifi\\**",
+                "D:\\esp-idf\\components\\esp_system\\**",
+                "D:\\esp-idf\\components\\esp_hw_support\\**",
+                "D:\\esp-idf\\components\\esp_common\\**",
+                "D:\\esp-idf\\components\\soc\\**",
+                "D:\\esp-idf\\components\\driver\\**",
+                "D:\\esp-idf\\components\\log\\**",
+                "D:\\esp-idf\\components\\esp_rom\\**",
+                "D:\\esp-idf\\components\\efuse\\**",
+                "D:\\esp-idf\\components\\newlib\\**",
+                "D:\\esp-idf\\components\\nvs_flash\\**",
+                "D:\\esp-idf\\components\\esp_ringbuf\\**",
+                "D:\\esp-idf\\components\\hal\\**",
+                "D:\\esp-idf\\components\\heap\\**",
+                "D:\\esp-idf\\components\\esp_timer\\**",
+                
+                
+                
+                
+                
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE",
+                "esp32",
+                "_GNU"
+            ],
+
+            "compileCommands": "build/compile_commands.json",
+            "compilerPath": "C:\\Program Files (x86)\\idf-tools\tools\\xtensa-esp32-elf\\esp-2022r1-11.2.0\\xtensa-esp32-elf\\bin\\xtensa-esp32-elf-gcc",
+                    
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "${default}",
+            "configurationProvider": "ms-vscode.cmake-tools"
+            // "compileCommands": ""
+        }
+    ],
+    "version": 4
+}
