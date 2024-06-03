@@ -2,12 +2,13 @@
 
 #include "flash_op.h"
 #include "flash_op_private.h"
-#include "flash_ota_meta_private.h"
+#include "flash_otameta_data.h"
 
 // ////// include the rom functionality here 
 #include "esp_rom_spiflash.h"
 #include "esp_rom_md5.h"
 
+#include "esp_flash.h"
 
 #include "esp_log.h"
 
@@ -230,121 +231,40 @@ exit:
 }
 
 
-/// @brief return the value based on the ota partition position
-/// @param ota_pos
-/// @param last_ele_addr
-/// @param last_ele_size
-/// @param size_used
-/// @return succ/err
-static esp_err_t esp_read_ota_partition(const esp_partition_pos_t* ota_pos, uint32_t* last_ele_addr, uint32_t* last_ele_size, uint32_t* size_used)
+/// @brief erase a given sector from flash 
+/// @param sector 
+/// @return succ/failure
+esp_err_t esp_erase_flash_sector(uint32_t sector)
 {
-    esp_err_t err = ESP_OK;
+    return esp_flash_erase_region(NULL, sector * SPI_FLASH_SEC_SIZE, SPI_FLASH_SEC_SIZE);
+}
 
-    if (!ota_pos)
+/// @brief just a wrapper function to wrap esp_flash api to specify null by default
+/// @param addr 
+/// @param buffer 
+/// @param len 
+/// @param encrypted 
+/// @return succ/failure
+esp_err_t esp_write_flash(size_t addr,const void *buffer, uint32_t len, bool encrypted)
+{
+    if(encrypted)
     {
-        err = ERR_SYS_INVALID_PARAM;
-        goto err;
+        return esp_flash_write_encrypted(NULL,addr,buffer,len);
     }
+    return esp_flash_write(NULL,buffer,addr,len);
+}
 
-    // have to map the sector 0 first
-    const void* esp_ota_partition_addr = esp_flash_mmap(ota_pos->offset, ota_pos->size);
-
-    // this should not happen ideally, if so then fail and reset
-    if (!esp_ota_partition_addr)
+/// @brief just a wrapper function to wrap esp_flash api to specify null by default
+/// @param addr 
+/// @param buffer 
+/// @param len 
+/// @param encrypted 
+/// @return 
+esp_err_t esp_read_flash(size_t addr,void * buffer, size_t len, bool encrypted)
+{
+    if(encrypted)
     {
-        err = ERR_SYS_OP_FAILED;
-        goto err;
+        return esp_flash_read_encrypted(NULL,addr,buffer,len);
     }
-
-    // -------------------------------- find the last stacked element and also check if sector is full -----------------------------
-    // size in bytes
-    uint32_t data_size_sec = 0;
-    // store the address, where to write
-    uint32_t last_elem_size = 0;
-
-    // search the first sector about last element
-    while (data_size_sec < FLASH_SECTOR_SIZE)
-    {
-        // void * is incremented by 1 byte
-        const bootloader_ota_metd_struct_t* ota_data = esp_ota_partition_addr + data_size_sec;
-
-        // check for valid magic number
-        if ((ota_data->magic_number_start == BOOTLOADER_OTA_STRUCT_MAGIC_NO) &&
-            (ota_data->magic_number_end == BOOTLOADER_OTA_STRUCT_MAGIC_NO))
-        {
-            data_size_sec += ota_data->size;
-            last_elem_size = ota_data->size;
-            // skip to next block, if garbage collect
-            if (ota_data->garbage_struct == BOOTLAODER_OTA_STRUCT_NEW)
-            {
-                break;
-            }
-
-        }
-        // data is corrupted
-        else if ((ota_data->magic_number_start == BOOTLOADER_OTA_STRUCT_MAGIC_NO) &&
-                 (ota_data->magic_number_end != BOOTLOADER_OTA_STRUCT_MAGIC_NO))
-        {
-            // data is corrupted, skip
-            // check for valid size not excedding 25 % of total space
-            if (ota_data->size < (FLASH_SECTOR_SIZE / 4))
-            {
-                data_size_sec += ota_data->size;
-                last_elem_size = ota_data->size;
-            } else
-            {
-                // assume that size is less then or equal to struct size
-                data_size_sec += BOOTLOADER_OTA_METAD_SIZE;
-                last_elem_size = BOOTLOADER_OTA_METAD_SIZE;
-            }
-
-        } else
-        {
-            // rest we are treating as end of stack
-            // reach at the end of stack
-            break;
-        }
-    }
-
-    if (data_size_sec == 0)
-    {
-        err = ERR_SYS_EMPTY_MEM;
-        goto err;
-    }
-
-    // unmap the sector
-    esp_flash_unmap(esp_ota_partition_addr);
-
-    // return the params
-    if (size_used != NULL)
-    {
-        *size_used = data_size_sec;
-    }
-    if (last_ele_size != NULL)
-    {
-        *last_ele_size = last_elem_size;
-    }
-    if (last_ele_addr != NULL)
-    {
-        *last_ele_addr = ota_pos->offset + data_size_sec - last_elem_size;
-    }
-
-    return ESP_OK;
-
-/// reach here when ther is an error
-err:
-    // return the params
-    if (size_used != NULL)
-    {
-        *size_used = 0;
-    }
-    if (last_ele_size != NULL)
-    {
-        *last_ele_size = 0;
-    }
-    if (last_ele_addr != NULL)
-    {
-        *last_ele_addr = 0;
-    }
-    return err;
+    return esp_flash_read(NULL,buffer,addr,len);
 }

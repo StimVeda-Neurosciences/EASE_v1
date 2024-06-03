@@ -91,16 +91,25 @@ enum
 {
     ERR_NONE =0,
     ERR_SYS_BASE = 0x01,
+    
+    // invalid things errors 
     ERR_SYS_INVALID_STATE,
     ERR_SYS_INVALID_PARAM,
-    ERR_SYS_TIMEOUT,
+    ERR_SYS_INVALID_DATA,
+    
+    // empty things errors 
     ERR_SYS_NO_RESOURCES,
+    ERR_SYS_EMPTY_MEM,
+    ERR_SYS_EMPTY_DATA,
+    ERR_SYS_NO_DATA,
+    
+    // fail things error
     ERR_SYS_OP_FAILED,
-    ERR_SYS_API_ERR,
     ERR_SYS_BOOT_FAIL,
+    ERR_SYS_API_ERR,
     ERR_SYS_APP_CRASH,
     ERR_SYS_FACTRY_RESET,
-    ERR_SYS_EMPTY_MEM,
+    ERR_SYS_TIMEOUT,
     
     ERR_EEG_BASE = 100,
 	ERR_EEG_HARDWARE_FAULT,

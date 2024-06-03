@@ -66,3 +66,25 @@ void esp_flash_unmap(const void * map_addr);
 void esp_read_partition_table(esp_flash_partition_struct_t *part_struct);
 
 
+
+/// @brief erase a given sector from flash 
+/// @param sector 
+/// @return succ/failure
+esp_err_t esp_erase_flash_sector(uint32_t sector);
+
+
+/// @brief just a wrapper function to wrap esp_flash api to specify null by default
+/// @param addr 
+/// @param buffer 
+/// @param len 
+/// @param encrypted 
+/// @return succ/failure
+esp_err_t esp_write_flash(size_t addr,const void *buffer, uint32_t len, bool encrypted);
+
+/// @brief just a wrapper function to wrap esp_flash api to specify null by default
+/// @param addr 
+/// @param buffer 
+/// @param len 
+/// @param encrypted 
+/// @return 
+esp_err_t esp_read_flash(size_t addr,void * buffer, size_t len, bool encrypted);
