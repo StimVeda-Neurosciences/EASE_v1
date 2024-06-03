@@ -182,44 +182,18 @@ typedef struct __APP_CUSTOM_DATA_HDR__
 #define PART_SUBTYPE_APP_APP_1 0x55UL
 
 
-/// @brief  @brief bootloader structure for bootloader functioning
-typedef struct __BOOTLOADER_STRUCTURE__
-{
-    // header information
-    bootloader_header_version_t bootloader_header;
-
-    /// @brief the below 3 items are given by OTA meta data
-    // store the state of images
-    bootloader_image_state_t state;
-    // store the boot indexes for the image
-    bootloader_boot_index_t boot_index;
-    /// @brief store the image indexes
-    bootloader_image_index_t image_index;
-
-    // store the applications partition position
-    esp_partition_pos_t ota_parts[BOOTLOADER_MAX_OTA_PARTITIONS];
-
-    // store the dfu partition position
-    esp_partition_pos_t dfu_parts[BOOTLOADER_MAX_DFU_PARTITIONS];
-
-    // store the meta data partition address
-    esp_partition_pos_t ota_meta_part[OTA_META_DATA_MAX_SECTORS];
-
-    esp_partition_pos_t boot_dump_part;
-
-} bootloader_boot_struct_t;
 
 #define BOOTLOADER_BOOT_STRUCT_SIZE (sizeof(bootloader_boot_struct_t))
 
 /// @brief this is a function pointer that can recieve variable argument function
-typedef esp_err_t (*var_arg_func_ptr)(void* param, ...);
+typedef int (*var_arg_func_ptr)(void* param, ...);
 
 /// @brief execute a process to max num times if getting error, if succ then return
 /// @param func_ptr
 /// @param param
 /// @param num
 /// @return succ/failure
-esp_err_t boot_execute_process(var_arg_func_ptr, void* param, uint8_t num, ...);
+int boot_execute_process(var_arg_func_ptr, void* param, uint8_t num, ...);
 
 /// @brief func-->the function to run , num--> num of tries, err--> variable to store error
 #define BOOT_EXECUTE_PROCESS(func, num, err)                                                                                               \
@@ -234,3 +208,66 @@ esp_err_t boot_execute_process(var_arg_func_ptr, void* param, uint8_t num, ...);
 /// @brief get the boot index from the meta data
 #define BOOT_GET_INDEX(x) ((x == OTA_IMAGE_INDEX_FIRST) ? (0) : ((x == OTA_IMAGE_INDEX_SECOND) ? (1) : (OTA_IMAGE_INDEX_NOT_PRESENT)))
 
+
+
+// define the magic number for the flash as 1 & 0 alternates
+#define BOOTLOADER_OTA_STRUCT_MAGIC_NO    0xA5A5UL
+#define BOOTLOADER_OTA_STRUCT_MAGIC_EMPTY UINT32_MAX
+
+// this struct/meta data is dump to garbage
+#define BOOTLOADER_OTA_GRABAGE_DUMP 0x10UL
+#define BOOTLAODER_OTA_STRUCT_NEW   UINT32_MAX
+
+
+/// @brief errors described as OTA errors 
+typedef enum __BOOTLOADER_OTA_ERRORS__
+{
+    BOOT_OTA_ERR_BASE = 0x00,
+
+    // invalid error cases 
+    BOOT_OTA_ERR_IMAGE_INDEX_INVALID,
+    BOOT_OTA_ERR_BOOT_INDEX_INVALID,
+    BOOT_OTA_ERR_IMAGE_INAVLID,
+
+    BOOT_OTA_ERR_BOOT_INDEX_MISMATCH,
+
+}bootloader_ota_errors_t;
+
+
+/// @brief bootloader ota structure
+typedef struct __BOOTLOADER_OTA_META_STRUCT__
+{
+    // magic number start has a specific value 
+    uint32_t magic_number_start;
+    /// @brief size in bytes 
+    uint32_t size;
+    // grabage
+    uint32_t garbage_struct;
+
+    // ota_header_version
+    bootloader_header_version_t ota_header_ver;
+    
+    // boot index for the OTA
+    bootloader_boot_index_t boot_index;
+    
+    // ota states
+    bootloader_image_state_t state;
+
+    // image indexes 
+    bootloader_image_index_t image_index;
+
+    // this magic number end has a specific value 
+    uint32_t magic_number_end;
+
+    // this data can be present here in flash , but not gaurente that it is valid 
+    // there are some extra data that are appended  
+    bootloader_custom_data_t extra_data;
+
+} PACKED bootloader_ota_metd_struct_t;
+
+
+#define BOOTLOADER_OTA_METAD_SIZE (sizeof(bootloader_ota_metd_struct_t))
+
+/// start and end offset of the meta data struct 
+#define BOOTLOADER_OTA_MODF_OFFS_START (OFFSET_OF(bootloader_ota_metd_struct_t,boot_index))
+#define BOOTLOADER_OTA_MODF_OFFS_END   (OFFSET_OF(bootloader_ota_metd_struct_t,state))

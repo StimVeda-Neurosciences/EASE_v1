@@ -16,7 +16,7 @@
 
 
 // packed attribute
-#define PACKED  __attribute__((__packed__))
+#define PACKED __packed
 
 #define UNUSED __unused
 
@@ -100,6 +100,7 @@ enum
     ERR_SYS_BOOT_FAIL,
     ERR_SYS_APP_CRASH,
     ERR_SYS_FACTRY_RESET,
+    ERR_SYS_EMPTY_MEM,
     
     ERR_EEG_BASE = 100,
 	ERR_EEG_HARDWARE_FAULT,

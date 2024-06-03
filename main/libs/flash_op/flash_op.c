@@ -21,9 +21,6 @@ void flash_op_driver_init(void)
 {
     // read the partitions and init it 
     esp_read_partition_table(&partition_pos);
-
-    // after that read the current partition number from OTA 
-    esp_map_flash_to_ram()
         
 }
 

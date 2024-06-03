@@ -2,6 +2,7 @@
 
 #include "flash_op.h"
 #include "flash_op_private.h"
+#include "flash_ota_meta_private.h"
 
 // ////// include the rom functionality here 
 #include "esp_rom_spiflash.h"
@@ -307,7 +308,7 @@ static esp_err_t esp_read_ota_partition(const esp_partition_pos_t* ota_pos, uint
 
     if (data_size_sec == 0)
     {
-        err = ;
+        err = ERR_SYS_EMPTY_MEM;
         goto err;
     }
 
