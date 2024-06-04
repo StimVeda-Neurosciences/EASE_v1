@@ -526,6 +526,9 @@ void gatts_events_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, es
             }
             break;
         }
+        case ESP_GATTS_SET_ATTR_VAL_EVT:
+            ESP_LOGW(TAG,"setting char val %d,",param->set_attr_val.status);
+            break;
         case ESP_GATTS_STOP_EVT:
         case ESP_GATTS_OPEN_EVT:
         case ESP_GATTS_CANCEL_OPEN_EVT:
@@ -538,6 +541,8 @@ void gatts_events_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, es
             break;
     }
 }
+
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////// GAP event Handler /////////////////////////////////////////////
@@ -641,6 +646,14 @@ esp_err_t esp_ble_send_err_indication(uint8_t err_code)
     return esp_ble_gatts_send_indicate(gatt_if_custom, connection_id, custom_db_handle[ERROR_CODE_VAL], 1, &err_code, true);
 }
 
+
+esp_err_t esp_ble_send_err_string(uint8_t * err_buff,uint16_t size)
+{
+    if (conn_flag != connected)
+        return ESP_ERR_INVALID_STATE;
+    return esp_ble_gatts_send_indicate(gatt_if_custom, connection_id, custom_db_handle[ERROR_CODE_VAL], size, err_buff, true);
+}
+
 /// @brief this is to send the device status through ble indication
 /// @param status
 /// @return succ/Failuren
@@ -659,9 +672,17 @@ esp_err_t esp_ble_send_status_indication(uint8_t status)
 static void esp_ble_get_device_info_strings(void)
 {
 
+
     // use flash api to read the app header
 }
 
+/// @brief set the attr values of the error code char
+/// @param buff 
+/// @param len 
+void esp_ble_set_error_codes(uint8_t *buff, uint16_t len)
+{
+
+}
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -763,7 +784,10 @@ void ble_driver_init(void)
 /// @param
 void ble_start_advertise(void)
 {
-    esp_ble_gap_start_advertising(&adv_params);
+    if(conn_flag == disconnected)
+    {
+        esp_ble_gap_start_advertising(&adv_params);
+    }
 }
 
 /// @brief to stop the advertisement

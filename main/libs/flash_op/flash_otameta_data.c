@@ -215,6 +215,7 @@ esp_err_t esp_write_ota_data_fresh(const esp_flash_partition_struct_t *part_stru
     err = esp_write_flash(part_struct->ota_meta_partition[OTA_META_DATA_SECTOR0].offset, (void *)data, data->size, false);
     ESP_ERR_CHECK(err);
 
+// =============================================================================
     // write to sector 1
 
     // erase the sector

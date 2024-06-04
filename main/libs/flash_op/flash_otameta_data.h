@@ -176,14 +176,18 @@ int boot_execute_process(var_arg_func_ptr, void* param, uint8_t num, ...);
 /// @brief errors described as OTA errors 
 typedef enum __OTA_ERRORS__
 {
-    OTA_ERR_BASE = 0x00,
+    OTA_ERR_BASE = ERR_OTA_ERR_BASE,
 
     // invalid error cases 
     OTA_ERR_IMAGE_INDEX_INVALID,
     OTA_ERR_BOOT_INDEX_INVALID,
     OTA_ERR_IMAGE_INAVLID,
-    OTA_ERR_BOOT_INDEX_MISMATCH,
 
+    OTA_ERR_IMAGE_ABSENT,
+    OTA_ERR_IMAGE_PENDING_VERIFY,
+    
+    OTA_ERR_BOOT_INDEX_MISMATCH,
+    OTA_ERR_BOOT_NO_DFU_IMAGES,
 }ota_errors_enum_t;
 
 

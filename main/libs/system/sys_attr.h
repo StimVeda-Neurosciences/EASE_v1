@@ -48,7 +48,7 @@
 /// @brief check the error and skip the process
 #define EXIT_IF_ERR(x)                                                                                                                       \
     if (x != ESP_OK)                                                                                                                       \
-    {                                                                                                                                      \
+    {ESP_LOGE(" ", "file %s line %d err %x", __FILE__, __LINE__, x);                                                                     \
         goto err;                                                                                                                          \
     }
 
@@ -128,6 +128,9 @@ enum
 
     ERR_ACCEL_BASE = 250,
 	ERR_ACCEL_HARDWARE_FAULT,
+
+    // OTA error base 
+    ERR_OTA_ERR_BASE = 300,
 
 };
 

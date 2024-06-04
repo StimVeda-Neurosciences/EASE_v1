@@ -44,3 +44,8 @@ uint64_t millis(void);
 /// @return micros 
 uint64_t micros(void);
 
+/***
+ * @brief this functin need to be called after the main app init and start correctly 
+ * bootloa. use RTC watchdog to confirm that app doesn't crash or hang 
+*/
+void esp_stop_bootloader_watchdog(void);

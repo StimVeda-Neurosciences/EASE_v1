@@ -100,7 +100,7 @@ const esp_gatts_attr_db_t device_info_db_table[DEVICE_INFO_NO_OF_ELE] =
                                     {ESP_UUID_LEN_16, u8_ptr(character_declaration_uuid), ESP_GATT_PERM_READ, _1byte, _1byte, u8_ptr(char_prop_read)}},
 
         /////////// charcteristic value
-        [FIRMWARE_REVISION_VAL] = {{ESP_GATT_AUTO_RSP},
+        [FIRMWARE_REVISION_VAL] = {{ESP_GATT_RSP_BY_APP},
                                    {ESP_UUID_LEN_16,
                                     u8_ptr(firmware_rev_char),
                                     ESP_GATT_PERM_READ,
@@ -278,7 +278,7 @@ const esp_gatts_attr_db_t custom_db_table[CUSTOM_NO_ELE] = {
                          {ESP_UUID_LEN_16, u8_ptr(character_declaration_uuid), ESP_GATT_PERM_READ, _1byte, _1byte, u8_ptr(char_prop_r_w_indicate)}},
 
     /* Characteristic Value */ // respond by app
-    [ERROR_CODE_VAL] = {{ESP_GATT_RSP_BY_APP}, {ESP_UUID_LEN_16, u8_ptr(custom_char5), Gatt_perm_r_w, _10bytes, sizeof(value), u8_ptr(value)}},
+    [ERROR_CODE_VAL] = {{ESP_GATT_RSP_BY_APP}, {ESP_UUID_LEN_16, u8_ptr(custom_char5), Gatt_perm_r_w, custom_char_mx_size, sizeof(value), u8_ptr(value)}},
 
     /* Client Characteristic Configuration Descriptor */
     [ERROR_CODE_CCFG] =

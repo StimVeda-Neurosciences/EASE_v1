@@ -26,6 +26,7 @@
         "spi_flash.h": "c",
         "esp_spi_flash.h": "c",
         "spi_flash_mmap.h": "c",
-        "chrono": "c"
+        "chrono": "c",
+        "esp_attr.h": "c"
     }
 }

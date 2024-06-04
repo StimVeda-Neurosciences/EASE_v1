@@ -266,6 +266,7 @@ void generaltask(void* param)
             led_driver_put_color(GREEN_COLOR);
             sys_send_stats_code(STATUS_IDLE);
             sys_send_err_code(device_run_bios_test());
+            // set the ble error code 
             err_code = 0;
         }
 
