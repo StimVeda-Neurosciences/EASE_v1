@@ -693,6 +693,7 @@ void ble_start_communication(void* taskhandle)
     general_Taskhandle = (TaskHandle_t) taskhandle;
 }
 
+
 /// @brief init the ble functionality
 /// @param
 void ble_driver_init(void)

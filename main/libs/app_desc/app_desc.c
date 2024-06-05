@@ -5,11 +5,16 @@
  *
  *
  */
-
 #include <stdio.h>
 #include <stdint.h>
 
 #include "app_desc.h"
+
+// -------------- only used for calculating the offset in the binary 
+// #include "esp_app_format.h"
+// #include "esp_app_desc.h"
+// #include "bootloader_common.h"
+// #define size sizeof(esp_image_header_t) + sizeof(esp_image_segment_header_t) + sizeof(esp_app_desc_t) + sizeof(esp_app_custom_desc_t)
 
 // the custom descriptor has to be inited at runtime
 const __attribute__((section(".rodata_custom_desc"))) esp_app_custom_mem_desc_t app_custom_desc = {
@@ -40,10 +45,10 @@ const __attribute__((section(".rodata_custom_desc"))) esp_app_custom_mem_desc_t 
       .app_boot_state = FLASH_EMPTY,
 
       // as we are using 2 custom sizes
-      .app_extra_size = 2 * APP_EXTRA_SIZE,
+      .app_extra_size =  APP_EXTRA_SIZE,
     },
 
-  .app_extra_mem = {[0 ...(2 * APP_EXTRA_SIZE - 1)] = FLASH_EMPTY_U8},
+  .app_extra_mem = {[0 ...(APP_EXTRA_SIZE - 1)] = FLASH_EMPTY_U8},
 };
 
 

@@ -30,8 +30,7 @@
 #define APP_TYPE_DFU_APP  0x20UL
 #define APP_TYPE_EASE_APP 0x10UL
 
-#define APP_EXTRA_SIZE (250) // in bytes 
-
+#define APP_EXTRA_SIZE (1024) // in bytes 
 
 
 /// @brief app descriptor structure
@@ -45,7 +44,7 @@ typedef struct __ESP_APP_CUSTOM_DESCP__
     /// @brief app version
     ota_header_version_t app_ver;
     /// @brief app name is null terminated
-    char app_name[APP_NAME_LEN];
+    const char app_name[APP_NAME_LEN];
     // describe the app type, DFU, APP
     uint8_t app_type;
     uint32_t app_size;
@@ -66,10 +65,13 @@ typedef struct __ESP_APP_CUSTOM_DESCP__
 typedef struct __ESP_APP_CUSTOM_MEMORY__
 {
     esp_app_custom_desc_t app_desc;
-    uint8_t app_extra_mem[2 * APP_EXTRA_SIZE];
+    uint8_t app_extra_mem[APP_EXTRA_SIZE];
     // esp_app_custom_desc_t mydesc;
 } esp_app_custom_mem_desc_t;
 
 #define APP_DESCRIPTOR_SIZE (sizeof(esp_app_custom_mem_desc_t))
 
-esp_app_custom_mem_desc_t app_custom_desc;
+
+
+// this is the decleartion of the variable used by other files 
+extern const esp_app_custom_mem_desc_t app_custom_desc;
