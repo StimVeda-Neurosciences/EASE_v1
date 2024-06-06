@@ -28,7 +28,7 @@ packed_data = "this is to be placed"
 packed_data = packed_data.encode('utf-8')
 # packed_data = packed_data.ljust(100, b'\x00')  # Ensure it's 100 bytes long
 
-"Hardware version" : "X4023" 
+# "Hardware version" : "X4023" 
 
 position = 351
 print(f"{RED} modifying the header of {in_file}  {RESET}")

@@ -252,7 +252,7 @@ void eeg_driver_deinit(void)
 /// @brief this is to verify that ads ic is present and working 
 /// @param  void 
 /// @return true /false 
-uint8_t eeg_verify_component(void)
+uint32_t eeg_verify_component(void)
 {
     uint8_t ret = ESP_OK;
 

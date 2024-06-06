@@ -270,7 +270,7 @@ uint16_t batt_get_chg_status(void)
 /// @brief this is to verify that fuel gauge is present and working
 /// @param  void
 /// @return succ/errcode
-uint8_t batt_verify_component(void)
+uint32_t batt_verify_component(void)
 {
   //// get the device fuel gauge id
   // read the device id from the 

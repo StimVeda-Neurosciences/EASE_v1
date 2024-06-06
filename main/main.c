@@ -25,6 +25,12 @@ static const char * TAG = "main";
 #define IDLE_STATE_WAIT_TIME (1000 * 60 * 2) // 2 minutes 
   //////// structure to store the tdcs message content format
 
+typedef uint32_t (*errors)(void);
+
+static errors bios_functions[4] = {eeg_verify_component,
+    tdcs_verify_component,batt_verify_component,flash_op_get_boot_errs};
+
+
 ///+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++/////
 ///++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++/////
 /// general task
@@ -123,6 +129,7 @@ void app_main(void)
     // start the esp timer 
     esp_start_timer();
 
+
     // create the task that handle the state and action 
     /////// create the general task that will handle the communication and creaate new task
     general_tsk_handle = xTaskCreateStaticPinnedToCore(generaltask,
@@ -154,23 +161,39 @@ void app_main(void)
     // the general task start immediately, and its handle doesn't init at that moment 
     ble_start_communication(general_tsk_handle);
 
+    // stop the watchdog timer 
+    esp_stop_bootloader_watchdog();
     // suspend itself
     vTaskSuspend(NULL);
 }
 
 // ///////////// this function will return the bios test result to the app when connected
 
-uint32_t device_run_bios_test(void)
+esp_err_t device_run_bios_test(void)
 {
-    uint32_t err = 0;
-    err |= ((0xFFUL & eeg_verify_component()) << EEG_ERR_POSITION);
-    err |= ((0xFFUL & tdcs_verify_component()) << TDCS_ERR_POSITION);
-    err |= ((0xFFUL & batt_verify_component()) << FUEL_GAUGE_ERR_POSITION);
+    esp_err_t 
+    err = eeg_verify_component() + tdcs_verify_component()
+    +  batt_verify_component() + flash_op_get_boot_errs(); 
     if (err != 0)
     {
         ESP_LOGE(TAG, "Bios err %x", err);
     }
     return err;
+}
+
+
+esp_err_t device_get_bios_err(uint32_t arr[],uint8_t num)
+{
+ if(num>SYS_ERRORS_MAX_NUMS || arr ==NULL)
+ {
+    return ERR_SYS_INVALID_PARAM;
+ }   
+    for(int i=0; i<num; i++)
+    {
+        arr[i] = bios_functions[i]();
+    }
+
+return ESP_OK;
 }
 
 void generaltask(void* param)

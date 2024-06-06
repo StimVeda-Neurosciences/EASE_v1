@@ -203,9 +203,9 @@ void tdcs_driver_init(void)
 /// @brief verify the TDCS component 
 /// @param  void 
 /// @return err code
-uint8_t tdcs_verify_component(void)
+uint32_t tdcs_verify_component(void)
 {
-    uint8_t ret = ESP_OK;
+    uint32_t ret = ESP_OK;
     set_curr = 0;
     delay(100);
     gpio_set_level(PIN_TDCS_BOOST_EN, 1);

@@ -72,7 +72,7 @@ void tdcs_start_prot(uint8_t waveform_type, uint16_t amplitude , uint32_t freque
 /// @brief verify the TDCS component 
 /// @param  void 
 /// @return err code
-uint8_t tdcs_verify_component(void);
+uint32_t tdcs_verify_component(void);
 
 /// @brief stop the TDCS protocol 
 /// @param  void 

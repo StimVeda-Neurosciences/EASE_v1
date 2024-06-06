@@ -43,7 +43,7 @@ void eeg_read_data(uint8_t *buff, uint16_t len);
 /// @brief this is to verify that ads ic is present and working 
 /// @param  void 
 /// @return true /false 
-uint8_t eeg_verify_component(void);
+uint32_t eeg_verify_component(void);
 
 /// @brief reset the EEG ic 
 /// @param reset_type 

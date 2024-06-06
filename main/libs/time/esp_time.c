@@ -4,6 +4,8 @@
 
 #include "esp_attr.h"
 
+#include "rtc_wdt.h"
+
 
 // general purpose timer handle 
 static gptimer_handle_t timer_handle = NULL;
@@ -50,7 +52,7 @@ void esp_stop_timer(void)
 /// @brief get the tick count of the timer 
 /// @param  void 
 /// @return tickcount
-uint64_t esp_timer_get_tick(void)
+uint64_t IRAM_ATTR esp_timer_get_tick(void)
 {
     uint64_t tick =0;
     if(gptimer_get_raw_count(timer_handle,&tick) != ESP_OK)
@@ -89,4 +91,24 @@ uint64_t IRAM_ATTR millis(void)
     gptimer_get_raw_count(timer_handle,&cnt);
     cnt /= 1000;
     return cnt;
+}
+
+
+/***
+ * @brief this functin need to be called after the main app init and start correctly 
+ * bootloa. use RTC watchdog to confirm that app doesn't crash or hang 
+*/
+void esp_stop_bootloader_watchdog(void)
+{
+    // wdt_hal_context_t rtc_wdt_ctx = {.inst = WDT_RWDT, .rwdt_dev = &RTCCNTL};
+    // wdt_hal_write_protect_disable(&rtc_wdt_ctx);
+    // wdt_hal_disable(&rtc_wdt_ctx);
+
+    // check if there is a protection ON on the Watchdog
+    if(rtc_wdt_get_protect_status())
+    {
+        rtc_wdt_protect_off();
+    }
+    // disable the rtc watchdog 
+    rtc_wdt_disable();
 }

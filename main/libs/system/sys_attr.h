@@ -134,9 +134,6 @@ enum
 
 };
 
-#define EEG_ERR_POSITION  8 
-#define TDCS_ERR_POSITION 16
-#define FUEL_GAUGE_ERR_POSITION 0
 
 ////////// enum to store status of the system 
 typedef enum __DEVICE_STATUS__
@@ -188,7 +185,7 @@ enum __DEVICE_COMMANDS__
 #define PIN_TDCS_D1 GPIO_NUM_33
 #define PIN_TDCS_D2 GPIO_NUM_32 // reverse of schematic 
 
-#define TDCS_SPI_PORT 
+// #define TDCS_SPI_PORT 
 
 ////======================= EEG pins ===========================
 
@@ -208,7 +205,7 @@ enum __DEVICE_COMMANDS__
 /////////// define the ads max transfer size 
 #define PIN_EEG_MAX_BUFF_SIZE   32 //////// in bytes 
 
-#define EEG_SPI_PORT 
+// #define EEG_SPI_PORT 
 ////======================= Fuel gauge  pins ===========================
 
 
@@ -217,6 +214,9 @@ enum __DEVICE_COMMANDS__
 #define PIN_BATT_SCL GPIO_NUM_9
 #define BATT_I2C_PORT I2C_NUM_0
 
+
+// there could be errors from 4 system at max 
+#define SYS_ERRORS_MAX_NUMS 4 
 
 //////////////////////////////////////////////////////////////////////////
 ///////////////// Function definations /////////////////////////////////////

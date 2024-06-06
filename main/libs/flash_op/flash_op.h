@@ -12,16 +12,27 @@
 
 #include "sys_attr.h"
 
-
+/// @brief Initialise the flash driver for operations like DFU switching, etc
+/// @param  void
 void flash_op_driver_init(void);
 
 
+/// @brief deinitalise the Flash op driver 
+/// @param  void
 void flash_op_driver_deinit(void);
 
 
-esp_err_t flash_op_read_app_desc(uint8_t * buff, uint16_t size);
+/// @brief this would get the bootloader errors if any 
+/// @param  void
+/// @return errors
+uint32_t flash_op_get_boot_errs(void);
 
+
+/// @brief this will write new metadata so that bootloader can switch to DFU partition 
+/// @param  void
+/// @return succ/failure
 esp_err_t flash_op_switch_to_dfu(void );
+
 
 esp_err_t flash_op_read_boot_dump_size(uint16_t *size);
 
