@@ -7,6 +7,7 @@
 '''
 import sys
 import struct 
+import json
 
 
 RED = '\033[91m'
@@ -27,8 +28,9 @@ packed_data = "this is to be placed"
 packed_data = packed_data.encode('utf-8')
 # packed_data = packed_data.ljust(100, b'\x00')  # Ensure it's 100 bytes long
 
+"Hardware version" : "X4023" 
 
-position = 356
+position = 351
 print(f"{RED} modifying the header of {in_file}  {RESET}")
 
 # Write the binary data to a file
@@ -116,8 +118,9 @@ for x in range(ESP_SEGMENT_COUNT):
 # the segment offset is 
 print(f"{RED} the total segment len is {hex(segment_offset)} {RESET}")
 
-
-hash_struct_format = '<12B32B'
+# since cehksum is present at a 16 byte boundary , we have to find the offset with respect to last address 
+padded_byte_boundary = 16-(segment_offset%16)
+hash_struct_format = f"<{padded_byte_boundary}B32B"
 
 # now read 50 bytes from here 
 with open(in_file,"rb")as f:
@@ -125,10 +128,10 @@ with open(in_file,"rb")as f:
     in_data_bytes = f.read(struct.calcsize(hash_struct_format))
     in_struct =  struct.unpack(hash_struct_format, in_data_bytes) 
     #  Convert the tuple of bytes to a bytes object
-    hash_struct = [hex(x) for x in in_struct[12:]]
-    hash_str = ''.join(ele.removeprefix('0x') for ele in hash_struct)
-    # can be done in this way 
-    # hash_str = ''.join(hex(ele).removeprefix('0x') for ele in in_struct[12:])
+    checksum = ''.join(hex(ele).removeprefix('0x').zfill(2) for ele in in_struct[:padded_byte_boundary]) 
+    hash_struct = [hex(x) for x in in_struct[padded_byte_boundary:]]
+    hash_str = ''.join(ele.removeprefix('0x').zfill(2) for ele in hash_struct)
+    print(f"checkusm = {checksum}")
     print(hash_str)
     
 

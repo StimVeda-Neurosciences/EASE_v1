@@ -46,6 +46,7 @@ const __attribute__((section(".rodata_custom_desc"))) esp_app_custom_mem_desc_t 
 
       // as we are using 2 custom sizes
       .app_extra_size =  APP_EXTRA_SIZE,
+      
     },
 
   .app_extra_mem = {[0 ...(APP_EXTRA_SIZE - 1)] = FLASH_EMPTY_U8},

@@ -28,3 +28,29 @@ esp_err_t flash_op_read_boot_dump_size(uint16_t *size);
 esp_err_t flash_op_read_boot_dump_msgs(uint16_t * no_of_msg);
 
 esp_err_t flash_op_read_boot_fail_type(uint32_t * failure);
+
+
+
+typedef enum __APP_INFO_INDEX__
+{
+    flash_app_info_none,
+    flash_app_info_Hardware_num,
+    flash_app_info_serial_num,
+    flash_app_info_firmware_num,
+    flash_app_info_device_num,
+    flash_app_info_app_name,
+    flash_app_info_app_manuf_name,
+
+}flash_app_info_index_t;
+
+
+
+/// @brief get the input string from the flash/DROM 
+/// @param  void 
+/// @return hardware revision string
+const char * flash_app_get_info(flash_app_info_index_t index);
+
+/// @brief get the len of the string 
+/// @param  void 
+/// @return len of the string 
+uint16_t flash_app_get_info_len(flash_app_info_index_t index);

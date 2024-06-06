@@ -28,7 +28,8 @@
         "spi_flash_mmap.h": "c",
         "chrono": "c",
         "esp_attr.h": "c",
-        "esp_app_format.h": "c"
+        "esp_app_format.h": "c",
+        "cjson.h": "c"
     },
     "python.REPL.enableREPLSmartSend": false
 }

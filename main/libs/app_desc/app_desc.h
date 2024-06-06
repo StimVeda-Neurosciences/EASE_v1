@@ -67,7 +67,7 @@ typedef struct __ESP_APP_CUSTOM_MEMORY__
     esp_app_custom_desc_t app_desc;
     uint8_t app_extra_mem[APP_EXTRA_SIZE];
     // esp_app_custom_desc_t mydesc;
-} esp_app_custom_mem_desc_t;
+}PACKED esp_app_custom_mem_desc_t;
 
 #define APP_DESCRIPTOR_SIZE (sizeof(esp_app_custom_mem_desc_t))
 

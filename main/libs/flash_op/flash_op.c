@@ -4,7 +4,7 @@
 // include the pirvate OTA defs 
 #include "flash_op_private.h"
 #include "flash_otameta_data.h"
-
+#include "app_desc.h"
 
 #include "esp_log.h"
 #include "esp_flash.h"
@@ -31,6 +31,7 @@ void flash_op_driver_init(void)
 {
     // read the partitions and init it 
     esp_read_partition_table(&partition_pos);
+
         
 }
 
@@ -125,15 +126,34 @@ esp_err_t flash_op_read_app_desc(uint8_t * buff, uint16_t size)
 }
 
 
-// esp_err_t flash_op_get_bootloader_err(void)
-// {
-    
-// }
+/***
+ * data is stored in the flash like 
+ * "START"="hardware ver":"xyz","serial number":"xyz","device number":"xyz"="END" 
+*/
 
+/// @brief get the input string from the flash/DROM 
+/// @param  void 
+/// @return hardware revision string
+const char * flash_app_get_info(flash_app_info_index_t index)
+{
+    const char * str = (const char *)app_custom_desc.app_desc.extra_mem;
+    ESP_LOGI(TAG, "str %s ",str);
 
+    // read the size and then bifurcate the values 
+    return NULL;
+}
+
+/// @brief get the len of the string 
+/// @param  void 
+/// @return len of the string 
+uint16_t flash_app_get_info_len(flash_app_info_index_t index)
+{
+    return 0;
+}
 
 // ===========================================================================================
 // ----------------------------------------- static functions here ---------------------------
+
 
 /// @brief get the dfu partition to boot and also ammend the changes in the partition_pos
 /// @param part 
@@ -163,3 +183,4 @@ static esp_err_t esp_get_dfu_boot_partition(ota_metd_struct_t * part)
 
     return ESP_OK;
 }
+

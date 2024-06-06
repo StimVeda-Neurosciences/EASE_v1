@@ -25,11 +25,11 @@
 #include "batt.h"
 #include "eeg.h"
 #include "tdcs.h"
+#include "flash_op.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#include "esp_partition.h"
 
 
 // ================== structure for gatt ptofile instance 
@@ -254,7 +254,30 @@ void gatts_events_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, es
                      param->read.handle);
             esp_gatt_rsp_t rsp = {0};
 
-            if (gatts_if == gatt_if_batt_srvc)
+            if(gatts_if == gatt_if_device_info)
+            {
+                uint8_t index =flash_app_info_none;
+                // need to know the hardware revision 
+                if(param->read.handle == device_info_db_handle[HARDWARE_REVISION_VAL])
+                {
+                    index = flash_app_info_Hardware_num;
+                }
+                // serial number 
+                else if(param->read.handle == device_info_db_handle[SERIAL_NUMBER_VAL])
+                {
+                    index = flash_app_info_serial_num;
+                }
+                // firmware version 
+                else if(param->read.handle == device_info_db_handle[FIRMWARE_REVISION_VAL])
+                {
+                    index = flash_app_info_firmware_num;
+                }
+                
+                    rsp.attr_value.len = flash_app_get_info_len(index);
+                    memcpy(rsp.attr_value.value, flash_app_get_info(index),flash_app_get_info_len(index));
+            }   
+
+            else if (gatts_if == gatt_if_batt_srvc)
             {
                 if (param->read.handle == battery_db_handle[BATTERY_VAL])
                 {
@@ -676,13 +699,6 @@ static void esp_ble_get_device_info_strings(void)
     // use flash api to read the app header
 }
 
-/// @brief set the attr values of the error code char
-/// @param buff 
-/// @param len 
-void esp_ble_set_error_codes(uint8_t *buff, uint16_t len)
-{
-
-}
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
