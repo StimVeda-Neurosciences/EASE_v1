@@ -213,7 +213,7 @@ void ble_disconnect_device(void);
 
 /// @brief start the communcation 
 /// @param taskhandle 
-void ble_start_communication(void * taskhandle);
+void ble_start_driver(void * taskhandle);
 
 /// @brief init the ble functionality 
 /// @param  

@@ -131,13 +131,16 @@ typedef struct __OTA_CUSTOM_DATA_HDR__
 {
     uint32_t magic_no;
     uint16_t size;
-    uint8_t reserverd;
+    // reserve 4 bytes 
+    uint32_t reserverd[4];
     /// @brief dynamic size memory , not defined it as 0 as that would be FAM
-    uint8_t data[1];
+    uint8_t data[0];
 } PACKED ota_custom_data_t;
 
 
 #define BOOTLOADER_BOOT_STRUCT_SIZE (sizeof(bootloader_boot_struct_t))
+#define BOOT_OTA_CUSTOM_DATA_SIZE (sizeof(ota_custom_data_t))
+
 
 /// @brief this is a function pointer that can recieve variable argument function
 typedef int (*var_arg_func_ptr)(void* param, ...);

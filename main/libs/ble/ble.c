@@ -256,7 +256,7 @@ void gatts_events_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, es
             {
                 index = flash_app_info_app_manuf_name;
             }
-            
+
             const char * str =  flash_app_get_info(index);
             rsp.attr_value.len = strlen(str);
             memcpy(rsp.attr_value.value,str, strlen(str));
@@ -682,7 +682,7 @@ esp_err_t esp_ble_send_status_indication(uint8_t status)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @brief start the communcation
 /// @param taskhandle
-void ble_start_communication(void *taskhandle)
+void ble_start_driver(void *taskhandle)
 {
 
     esp_err_t set_dev_name_ret = esp_ble_gap_set_device_name(DEVICE_NAME);
@@ -705,6 +705,7 @@ void ble_start_communication(void *taskhandle)
     }
 
     adv_config_done |= scan_rsp_config_flag;
+
     general_Taskhandle = (TaskHandle_t)taskhandle;
 }
 

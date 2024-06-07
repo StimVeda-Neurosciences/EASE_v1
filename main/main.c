@@ -159,7 +159,7 @@ void app_main(void)
     ESP_LOGI(TAG,"the free heap memory is %ld", heap_caps_get_free_size(MALLOC_CAP_DEFAULT));
 
     // the general task start immediately, and its handle doesn't init at that moment 
-    ble_start_communication(general_tsk_handle);
+    ble_start_driver(general_tsk_handle);
 
     // stop the watchdog timer 
     esp_stop_bootloader_watchdog();
