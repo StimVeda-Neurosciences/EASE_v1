@@ -12,6 +12,16 @@
 
 #include "sys_attr.h"
 
+/// @brief how many key value pair can be stored 
+#define MAX_NO_OF_KEY_ATTR 6
+/// @brief len of the atttribute
+#define MAX_LEN_OF_KEY_ATTR 20
+
+/******
+ * the flash stores the headband data in json
+ * {"hardware_Ver":"45SQ","serial_number"}
+ */
+
 /// @brief Initialise the flash driver for operations like DFU switching, etc
 /// @param  void
 void flash_op_driver_init(void);
@@ -60,8 +70,3 @@ typedef enum __APP_INFO_INDEX__
 /// @param  void 
 /// @return hardware revision string
 const char * flash_app_get_info(flash_app_info_index_t index);
-
-/// @brief get the len of the string 
-/// @param  void 
-/// @return len of the string 
-uint16_t flash_app_get_info_len(flash_app_info_index_t index);

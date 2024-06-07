@@ -169,6 +169,9 @@ void app_main(void)
 
 // ///////////// this function will return the bios test result to the app when connected
 
+/// @brief test if there is a bios error or not 
+/// @param  void 
+/// @return succ/faulure
 esp_err_t device_run_bios_test(void)
 {
     esp_err_t 
@@ -181,7 +184,10 @@ esp_err_t device_run_bios_test(void)
     return err;
 }
 
-
+/// @brief getting the bios erros 
+/// @param arr 
+/// @param num 
+/// @return succ/failure
 esp_err_t device_get_bios_err(uint32_t arr[],uint8_t num)
 {
  if(num>SYS_ERRORS_MAX_NUMS || arr ==NULL)
@@ -277,14 +283,14 @@ void generaltask(void* param)
             // vTaskResume(waiting_task_handle);
         } else if (notf_val == DEV_STATE_BLE_DISCONNECTED)
         {
-            ESP_LOGW(TAG,"DEvice disconnected ");
+            ESP_LOGW(TAG,"Device disconnected ");
 
             //// function automatically destroy themselves
             tdcs_cmd.stop_type = tac_abort;
 
         } else if (notf_val == DEV_STATE_BLE_CONNECTED)
         {
-            ESP_LOGW(TAG,"DEvice connected ");
+            ESP_LOGW(TAG,"Device connected ");
             // ///// check if the backgroud process  are done or not
             led_driver_put_color(GREEN_COLOR);
             sys_send_stats_code(STATUS_IDLE);

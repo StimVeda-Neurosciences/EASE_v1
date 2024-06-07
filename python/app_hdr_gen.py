@@ -24,19 +24,22 @@ in_file = sys.argv[1]
 
 # Pack the data into binary format
 # packed_data = struct.pack(struct_format, *data)
-packed_data = "this is to be placed"
-packed_data = packed_data.encode('utf-8')
 # packed_data = packed_data.ljust(100, b'\x00')  # Ensure it's 100 bytes long
 
-# "Hardware version" : "X4023" 
+app_data_json = {"Hardware ver": "234SD" ,
+    "Serial num": "35861206023","Firmware ver": "V1.2.2",
+    "Device num": "XXXXXX", "Manuf. name": "Marbles.Health"}
+
+app_hdr_data = (str(app_data_json) + "\0").encode('utf-8')
+print(app_hdr_data)
 
 position = 351
-print(f"{RED} modifying the header of {in_file}  {RESET}")
+print(f"{RED} modifying the header of {in_file}  and len to write {len(app_hdr_data)} {RESET}")
 
 # Write the binary data to a file
 with open(in_file, 'r+b') as f:
     f.seek(position)
-    f.write(packed_data)
+    f.write(app_hdr_data)
 
 
 # after writing the data we also have to correct the checksum and hash appended of the binary 

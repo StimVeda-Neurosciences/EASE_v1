@@ -10,8 +10,6 @@
 #include "esp_gatt_common_api.h"
 #include "esp_wifi.h"
 
-
-
 static uint8_t char_start_val[1] = {0};
 
 static const uint16_t primary_service_uuid = ESP_GATT_UUID_PRI_SERVICE;
@@ -52,6 +50,7 @@ static const uint16_t manufact_name_char = 0x2A29;
 static const uint16_t serial_num_char = 0x2A25;
 static const uint16_t hardware_rev_char = 0x2A27;
 static const uint16_t firmware_rev_char = 0x2A26;
+static const uint16_t device_number_char = 0x2A23;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -71,13 +70,13 @@ const esp_gatts_attr_db_t device_info_db_table[DEVICE_INFO_NO_OF_ELE] =
                                     {ESP_UUID_LEN_16, u8_ptr(character_declaration_uuid), ESP_GATT_PERM_READ, _1byte, _1byte, u8_ptr(char_prop_read)}},
 
         /* Characteristic Value */ // respond by app
-        [MANUFACTURER_NAME_VAL] = {{ESP_GATT_AUTO_RSP},
+        [MANUFACTURER_NAME_VAL] = {{ESP_GATT_RSP_BY_APP},
                                    {ESP_UUID_LEN_16,
                                     u8_ptr(manufact_name_char),
                                     ESP_GATT_PERM_READ,
-                                    sizeof(MANUFACTURER_NAME),
-                                    sizeof(MANUFACTURER_NAME),
-                                    u8_ptr(MANUFACTURER_NAME)}},
+                                    GATT_MAX_ATTR_STRING_LEN,
+                                    _1byte,
+                                    char_start_val}},
 
         /* Characteristic Declaration */
         [SERIAL_NUMBER_CAHR] = {{ESP_GATT_AUTO_RSP},
@@ -106,7 +105,18 @@ const esp_gatts_attr_db_t device_info_db_table[DEVICE_INFO_NO_OF_ELE] =
                                     ESP_GATT_PERM_READ,
                                     MAX_ATTRIBUTE_SIZE,
                                     _1byte,
-                                    char_start_val}}
+                                    char_start_val}},
+
+        [DEVICE_NUMBER_CHAR] = {{ESP_GATT_AUTO_RSP},
+                                {ESP_UUID_LEN_16, u8_ptr(character_declaration_uuid), ESP_GATT_PERM_READ, _1byte, _1byte, u8_ptr(char_prop_read)}},
+
+        [DEVICE_NUMBER_VAL] =     {{ESP_GATT_RSP_BY_APP},
+                                    {ESP_UUID_LEN_16,
+                                    u8_ptr(device_number_char),
+                                    ESP_GATT_PERM_READ,
+                                    MAX_ATTRIBUTE_SIZE,
+                                    _1byte,
+                                    char_start_val}},
 
 };
 
