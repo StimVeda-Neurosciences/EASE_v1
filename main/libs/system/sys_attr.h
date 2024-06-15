@@ -143,6 +143,7 @@ typedef enum __DEVICE_STATUS__
     STATUS_EEG_RUN,
     STATUS_TDCS,
     STATUS_OTA,
+    STATUS_DEVICE_RESTART,
     STATUS_PWR_OFF,
     
 }device_state_enum_t;

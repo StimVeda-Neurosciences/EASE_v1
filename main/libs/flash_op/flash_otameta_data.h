@@ -130,11 +130,11 @@ typedef struct __OTA_META_HEADER_VER__
 typedef struct __OTA_CUSTOM_DATA_HDR__
 {
     uint32_t magic_no;
-    uint16_t size;
-    // reserve 4 bytes 
-    uint32_t reserverd[4];
+    uint32_t size;
+    // reserve 3 bytes 
+    uint32_t reserverd[4]; /// must be 3 byte aligned 
     /// @brief dynamic size memory , not defined it as 0 as that would be FAM
-    uint8_t data[0];
+    const uint8_t *data;
 } PACKED ota_custom_data_t;
 
 

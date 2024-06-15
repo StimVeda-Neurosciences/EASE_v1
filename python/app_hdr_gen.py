@@ -33,7 +33,7 @@ app_data_json = {"Hardware ver": "234SD" ,
 app_hdr_data = (str(app_data_json) + "\0").encode('utf-8')
 print(app_hdr_data)
 
-position = 351
+position = 351  # calculated by estmating the size of the image_hdr + segment_hdr + app_descriptor 
 print(f"{RED} modifying the header of {in_file}  and len to write {len(app_hdr_data)} {RESET}")
 
 # Write the binary data to a file
@@ -137,5 +137,7 @@ with open(in_file,"rb")as f:
     print(f"checkusm = {checksum}")
     print(hash_str)
     
+    
+# .write own sha hash on the image 
 
 print("================================================")

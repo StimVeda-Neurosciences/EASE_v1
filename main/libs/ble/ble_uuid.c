@@ -177,37 +177,6 @@ const esp_gatts_attr_db_t battery_db_table[BATT_NO_OF_ELE] = {
 
 };
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////------------ device firmware update ----------------/////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// static const uint8_t dfu_serv[] = {0x50, 0xea, 0xda, 0x30, 0x88, 0x83, 0xb8, 0x9f, 0x60, 0x4f, 0x15, 0xf3, 0x01, 0x00, 0x40, 0x8e};
-
-// static const uint8_t dfu_char[] = {0x50, 0xea, 0xda, 0x30, 0x88, 0x83, 0xb8, 0x9f, 0x60, 0x4f, 0x15, 0xf3, 0x01, 0x00, 0x40, 0x8e};
-
-// static uint32_t dfu_val = 0;
-// static uint16_t dfu_client_char_config = 0;
-
-// static const esp_gatts_attr_db_t dfu_ota_db[DFU_NO_OF_ELE] = {
-//   // Service Declaration
-//   [DFU_SERVICE] = {{ESP_GATT_AUTO_RSP},
-//                    {ESP_UUID_LEN_16, u8_ptr(primary_service_uuid), ESP_GATT_PERM_READ, sizeof(dfu_serv), sizeof(dfu_serv), dfu_serv}},
-
-//   /* Characteristic Declaration */
-//   [DFU_CHAR] = {{ESP_GATT_AUTO_RSP},
-//                 {ESP_UUID_LEN_16, u8_ptr(character_declaration_uuid), ESP_GATT_PERM_READ, _1byte, _1byte, u8_ptr(char_w_notify)}},
-
-//   /* Characteristic Value */ // respond by app
-//   [DFU_VAL] = {{ESP_GATT_RSP_BY_APP}, {ESP_UUID_LEN_128, dfu_char, ESP_GATT_PERM_READ, DFU_CHAR_MX_SIZE, sizeof(dfu_val), u8_ptr(dfu_val)}},
-//   ///////////////char config for DFU service
-//   [DFU_CHAR_CONFIG] = {{ESP_GATT_AUTO_RSP},
-//                        {ESP_UUID_LEN_16, u8_ptr(client_charcater_config_uuid), Gatt_perm_r_w, _2bytes, _2bytes, u8_ptr(dfu_client_char_config)}}
-
-// };
-
-// static uint16_t dfu_db_handle[DFU_NO_OF_ELE];
-
-// static uint16_t gatt_if_dfu_srv = ESP_GATT_IF_NONE;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////--------------custom service for our job -------------////////////////////////////////////

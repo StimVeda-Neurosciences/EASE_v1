@@ -23,6 +23,7 @@ static const gptimer_config_t timer_config = {
 
     gptimer_new_timer(&timer_config, &timer_handle);
     gptimer_enable(timer_handle);
+    gptimer_set_raw_count(timer_handle,0);
 
 }
 

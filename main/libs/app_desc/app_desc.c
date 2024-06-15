@@ -38,8 +38,8 @@ const __attribute__((section(".rodata_custom_desc"))) esp_app_custom_mem_desc_t 
 
       .app_name = APP_NAME,
 
-      .app_type = APP_TYPE_DFU_APP,
-      .app_size = FLASH_EMPTY, // need a way to get the size of the app
+      .app_type = APP_TYPE_EASE_APP,
+      .app_size = FLASH_EMPTY, // filled by the python program
 
       .app_verif_state = FLASH_EMPTY,
       .app_boot_state = FLASH_EMPTY,

@@ -370,10 +370,23 @@ void gatts_events_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, es
 
             else if (custom_db_handle[STATUS_CODE_VAL] == param->write.handle)
             {
-                if (param->write.value[0] == STATUS_PWR_OFF)
+                if (STATUS_PWR_OFF == param->write.value[0])
                 {
                     ESP_LOGW(TAG, "shuting down system");
                     system_shutdown();
+                }
+                else if ( STATUS_DEVICE_RESTART == param->write.value[0] )
+                {
+                    ESP_LOGW(TAG,"restarting device");
+                    system_restart();
+                }
+                else if(STATUS_OTA ==  param->write.value[0])
+                {
+                    esp_err_t err = flash_op_switch_to_dfu();
+                    if(err != ESP_OK)
+                    {
+                        esp_ble_send_err_indication(err);
+                    }
                 }
             }
 
@@ -494,21 +507,7 @@ void gatts_events_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, es
                 esp_ble_gatts_start_service(battery_db_handle[BATTERY_SERVICE]);
             }
         }
-        // } else if (gatts_if == gatt_if_dfu_srv) {
-
-        //   if (param->add_attr_tab.num_handle != DFU_NO_OF_ELE) {
-        //     ESP_LOGE(GATTS_TAG,
-        //              "create attribute table abnormally, num_handle (%d)
-        //                   doesn't equal to HRS_IDX_NB(%d)\r\n",
-        //              param->add_attr_tab.num_handle,
-        //              DFU_NO_OF_ELE);
-        //   } else {
-        //     ESP_LOGI(GATTS_TAG, "create attribute table successfully, the number handle = %d\n", param->add_attr_tab.num_handle);
-        //     memcpy(dfu_db_handle, param->add_attr_tab.handles, sizeof(dfu_db_handle));
-
-        //     esp_ble_gatts_start_service(dfu_db_handle[DFU_SERVICE]);
-        //   }
-        // }
+      
         else if (gatts_if == gatt_if_custom)
         {
 
@@ -642,11 +641,11 @@ esp_err_t esp_ble_send_battery_data(uint8_t *buff, uint16_t size)
     return esp_ble_gatts_send_indicate(gatt_if_batt_srvc, connection_id, battery_db_handle[BATTERY_VAL], size, buff, true);
 }
 
-esp_err_t esp_ble_send_err_indication(uint8_t err_code)
+esp_err_t esp_ble_send_err_indication(uint32_t err_code)
 {
     if (conn_flag != connected)
         return ESP_ERR_INVALID_STATE;
-    return esp_ble_gatts_send_indicate(gatt_if_custom, connection_id, custom_db_handle[ERROR_CODE_VAL], 1, &err_code, true);
+    return esp_ble_gatts_send_indicate(gatt_if_custom, connection_id, custom_db_handle[ERROR_CODE_VAL], sizeof(err_code), u8_ptr(err_code), true);
 }
 
 /// @brief send the error array

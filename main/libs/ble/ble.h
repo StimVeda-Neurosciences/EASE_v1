@@ -183,7 +183,7 @@ esp_err_t esp_ble_send_battery_data(uint8_t * data, uint16_t len);
 /// @brief send the err indication 
 /// @param err 
 /// @return succ/errcode
-esp_err_t esp_ble_send_err_indication(uint8_t err);
+esp_err_t esp_ble_send_err_indication(uint32_t err);
 
 
 /// @brief send the error array 

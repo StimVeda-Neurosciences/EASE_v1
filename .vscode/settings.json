@@ -30,7 +30,8 @@
         "esp_attr.h": "c",
         "esp_app_format.h": "c",
         "cjson.h": "c",
-        "rtc_wdt.h": "c"
+        "rtc_wdt.h": "c",
+        "flash_op_private.h": "c"
     },
     "python.REPL.enableREPLSmartSend": false
 }

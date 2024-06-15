@@ -16,18 +16,19 @@
 
 static volatile batt_data_struct_t batt_data;
 
-
-// ========================= task realted param 
-#define batt_Task_stack_depth 2048
 static const char * TAG = "BATT";
 
-void batt_function_task(void* param);
+// ========================= task realted param 
+#define BATT_TASK_STACK_DEPTH 2048
+#define BATT_TASK_PARAM NULL
+#define BATT_TASK_CPU PRO_CPU
+#define BATT_TASK_NAME "BATT_TASK"
+#define BATT_TASK_PRIORITY PRIORITY_5
 
+void batt_function_task(void* param);
 static TaskHandle_t batt_taskhandle;
 
-#define TASK_NAME "BATT_TASK"
-
-static StackType_t batt_Task_stack_mem[batt_Task_stack_depth];
+static StackType_t batt_Task_stack_mem[BATT_TASK_STACK_DEPTH];
 static StaticTask_t batt_task_tcb;
 
 #define battery_state_change_update_time 500
@@ -141,11 +142,8 @@ void batt_driver_init(void)
 
 return_mech:
   ///////// reserve 1kb space for the fuel gauge task
-  batt_taskhandle =  xTaskCreateStaticPinnedToCore(batt_function_task,TASK_NAME,batt_Task_stack_depth,NULL,PRIORITY_5,batt_Task_stack_mem,&batt_task_tcb,PRO_CPU);
-  if(batt_taskhandle == NULL)
-  {
-    system_restart();
-  }
+  batt_taskhandle =  xTaskCreateStaticPinnedToCore(batt_function_task,BATT_TASK_NAME,BATT_TASK_STACK_DEPTH,BATT_TASK_PARAM,BATT_TASK_PRIORITY,batt_Task_stack_mem,&batt_task_tcb,BATT_TASK_CPU);
+  assert(batt_taskhandle != NULL);
 
 }
 
