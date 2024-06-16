@@ -31,7 +31,12 @@
         "esp_app_format.h": "c",
         "cjson.h": "c",
         "rtc_wdt.h": "c",
-        "flash_op_private.h": "c"
+        "flash_op_private.h": "c",
+        "esp_adc_cal.h": "c",
+        "esp_adc_cal_types_legacy.h": "c",
+        "adc_types_legacy.h": "c",
+        "timers.h": "c",
+        "ringbuf.h": "c"
     },
     "python.REPL.enableREPLSmartSend": false
 }

@@ -8,7 +8,7 @@
 import sys
 import struct 
 import json
-
+import hashlib
 
 RED = '\033[91m'
 GREEN = '\033[92m'
@@ -50,7 +50,39 @@ uint8_t_max = 0xFF
 
 INT_SIZE = 4
 # esp_app_descriptor_size = 256
+
+''' 
+================== Function defination here =========================================
  
+    '''
+    
+''' get the sha hash of the file '''
+def calculate_file_sha256(file_path, file_len):
+    # Initialize the SHA-256 hash object
+    sha256_hash = hashlib.sha256()
+    
+    def get_file_chunks():
+        chunk_size = 1024;current_len=0
+        # Open the file in binary mode
+        with open(file_path, "rb") as f:
+            while current_len < file_len:
+                # read the min of remaining len and chunk size 
+                # Read the next chunk (but no more than remaining bytes)
+                chunk = f.read(min(chunk_size, (file_len-current_len)))
+                if not chunk:
+                    break
+                # use yield for generators instead of return 
+                yield chunk 
+                current_len += len(chunk)
+            
+            # Read the file in chunks to handle large files
+            # for byte_block in iter(lambda: f.read(4096), b""):
+        
+    for data in get_file_chunks():
+        sha256_hash.update(data)
+    
+    # Return the hexadecimal digest of the hash
+    return sha256_hash.hexdigest() 
 
 # uint8_t magic;              /*!< Magic word ESP_IMAGE_HEADER_MAGIC */
 # uint8_t segment_count;      /*!< Count of memory segments */
@@ -138,6 +170,8 @@ with open(in_file,"rb")as f:
     print(hash_str)
     
     
-# .write own sha hash on the image 
-
 print("================================================")
+
+# .write own sha hash on the image 
+# calculate the sha and show to user 
+print("the size of the file is ",calculate_file_sha256(in_file,segment_offset))

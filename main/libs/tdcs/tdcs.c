@@ -271,8 +271,8 @@ void tdcs_start_prot(uint8_t waveform_type, uint16_t amplitude, uint32_t frequen
     send_tdc(DAC_DATA, 0x0000);
 
     //////// turn on the gpio pins d1 and low the gpio d2
-    gpio_set_level(PIN_TDCS_D1, 0);
-    gpio_set_level(PIN_TDCS_D2, 1);
+    gpio_set_level(PIN_TDCS_D1, 1);
+    gpio_set_level(PIN_TDCS_D2, 0);
 
     gpio_intr_enable(PIN_TDCS_OVRCURRENT_INTR);
     delay(40);
@@ -578,14 +578,14 @@ uint32_t check_tdcs_protection(void)
 
     uint32_t measured_current = tdcs_get_current_flowing();
 
-    //// check open electrodes here
-    // if (set_curr > TDCS_IMPEDANCE_CURRENT_THRESHOLD_VALUE)
-    // {
-    //     if (measured_current < TDCS_ELECTRODE_OPEN_CIRCUIT_VLAUE)
-    //     {
-    //         return ERR_TDCS_ELECTRODES_OPEN;
-    //     }
-    // }
+    // check open electrodes here
+    if (set_curr > TDCS_IMPEDANCE_CURRENT_THRESHOLD_VALUE)
+    {
+        if (measured_current < TDCS_ELECTRODE_OPEN_CIRCUIT_VLAUE)
+        {
+            return ERR_TDCS_ELECTRODES_OPEN;
+        }
+    }
 
     /// check the software based overcurrent
     if (measured_current > TDCS_ELECTRODES_OVERCURRENT_LIMIT)

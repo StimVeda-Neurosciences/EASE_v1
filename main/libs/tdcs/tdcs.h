@@ -130,7 +130,7 @@ uint32_t check_tdcs_protection(void);
 /// @brief get the current flowing through electrodes 
 /// @param  void 
 /// @return curernt flowing through 
- int tdcs_get_current_flowing(void);
+uint32_t tdcs_get_current_flowing(void);
 
 
 #define TDCS_ELECTRODES_OVERCURRENT_LIMIT 2300 //////refer to as 2.1v 

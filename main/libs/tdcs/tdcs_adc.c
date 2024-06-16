@@ -11,74 +11,64 @@
 
 #include "driver/gpio.h"
 
-#include "esp_adc/adc_oneshot.h"
-#include "esp_adc/adc_cali.h"
-#include "esp_adc/adc_cali_scheme.h"
-#include "hal/adc_types.h"
+#include "driver/adc.h"
+#include "driver/adc_types_legacy.h"
 
+#include "esp_adc_cal.h"
+#include "esp_adc_cal_types_legacy.h"
+
+static esp_adc_cal_characteristics_t adc_chars = {0};
 
 static const char * TAG = "TDCS_ADC";
 
-#define DEFAULT_VREF    1121        //Use adc2_vref_to_gpio() to obtain a better estimate
+#define ADC_BITWITDTH ADC_WIDTH_BIT_12
+#define ADC_ATTEN_FACTOR ADC_ATTEN_DB_6
+
+#define ADC_PIN_CH ADC1_CHANNEL_7
+
+#define DEFAULT_VREF    1121    
+// #define DEFAULT_VREF    1065        //Use adc2_vref_to_gpio() to obtain a better estimate
 
 
-#define ADC_SAMPLING_POINTS 30
+#define ADC_SAMPLING_POINTS 20
 
-#define Resistance 0.56 // in ohm
+#define Resistance 0.56 /// 560 ohm resistor 
 
 
 /// @brief Get the ADC voltage from the 
 /// @param  void 
 /// @return return the adc voltage in micro volts units  
-static int IRAM_ATTR tdcs_adc_get_vol(void);
+static uint32_t  tdcs_adc_get_vol(void);
 
 
-
-
-static adc_oneshot_unit_handle_t adc1_handle;
-static adc_cali_handle_t adc_cali_handle;
-
-
-
+/// @brief calibrate the adc driver 
+/// @param  void
 static void calibrate_adc_driver(void )
 {
-    adc_cali_line_fitting_config_t adc_calib =
+    
+    esp_adc_cal_value_t cal_Val =  esp_adc_cal_characterize(ADC_UNIT_1,ADC_ATTEN_FACTOR,ADC_BITWITDTH,DEFAULT_VREF,&adc_chars);
+      if (cal_Val == ESP_ADC_CAL_VAL_EFUSE_TP)
     {
-        .atten = ADC_ATTEN_DB_12,
-        .bitwidth = ADC_BITWIDTH_12,
-        .default_vref = DEFAULT_VREF,
-        .unit_id = ADC_UNIT_1
-    };
-    esp_err_t err =  adc_cali_create_scheme_line_fitting(&adc_calib,&adc_cali_handle);
-    if(err != ESP_OK)
-    {
-        ESP_LOGE(TAG, "adc driver calib unit failed");
-        system_raw_restart();
+        printf("Characterized using Two Point Value\n");
     }
-
+    else if (cal_Val == ESP_ADC_CAL_VAL_EFUSE_VREF)
+    {
+        printf("Characterized using eFuse Vref\n");
+    }
+    else
+    {
+        printf("Characterized using Default Vref\n");
+    }
 }
 
 
-static int IRAM_ATTR  tdcs_adc_get_vol(void)
+static uint32_t IRAM_ATTR  tdcs_adc_get_vol(void)
 {
-    // printf("Raw: reading is %d , voltage is mv %f \r\n", adc_reading, (adc_reading *0.598f));
-    int raw=0;
-    esp_err_t err =  adc_oneshot_read(adc1_handle, ADC_CHANNEL_7,&raw );
-    if(err != ESP_OK)
-    {
-        return 0;
-    }
-    int voltage =0;
-    err = adc_cali_raw_to_voltage(adc_cali_handle,raw, &voltage);
-    if(err != ESP_OK)
-    {
-        return 0;
-    }
-    return voltage;
+    return esp_adc_cal_raw_to_voltage(adc1_get_raw(ADC_PIN_CH),&adc_chars);
 }
 
 
-IRAM_ATTR int tdcs_get_current_flowing(void)
+IRAM_ATTR uint32_t tdcs_get_current_flowing(void)
 {
     uint32_t i_value = 0;
     for(int i=0; i< ADC_SAMPLING_POINTS; i++)
@@ -98,37 +88,16 @@ void adc_driver_init(void)
 
     calibrate_adc_driver();
 
-    // Configure ADC
-    static const adc_oneshot_unit_init_cfg_t adc2_config = 
-    {
-        .ulp_mode = ADC_ULP_MODE_DISABLE,
-        .unit_id = ADC_UNIT_1, 
-    };
-    esp_err_t err = adc_oneshot_new_unit(&adc2_config, &adc1_handle);
+    adc_set_data_width(ADC_UNIT_1,ADC_BITWITDTH);
+    adc1_config_channel_atten(ADC_PIN_CH,ADC_ATTEN_FACTOR);
 
-    if(err != ESP_OK)
-    {
-        ESP_LOGE(TAG, "adc driver unit failed");
-        system_raw_restart();
-    }
-
-    adc_channel_t adc_channel;
-    adc_unit_t adc_unit = ADC_UNIT_1;
-    adc_oneshot_io_to_channel(PIN_TDCS_CURRENT_MONITOR,&adc_unit,&adc_channel);
-
-
-    adc_oneshot_chan_cfg_t adc_chanel_config =
-    {
-        .bitwidth = ADC_BITWIDTH_12,
-        .atten = ADC_ATTEN_DB_12,
-    };
-    adc_oneshot_config_channel(adc1_handle, adc_channel, &adc_chanel_config);
 }
 
 void adc_driver_deinit(void)
 {
     // delete the calibration scheme and delete the driver 
-    adc_cali_delete_scheme_line_fitting(adc_cali_handle);
-    adc_oneshot_del_unit(adc1_handle);
+    //  no api function to deinit adc driver 
+    // adc_digi_stop();
+   
 }
 
