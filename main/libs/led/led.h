@@ -92,8 +92,8 @@ typedef struct __LED_TIEM_CONFIG__
     (led_time_config_struct_t){MAX_OF(BLINK_ON,LED_TIMER_MIN_BLINK_TIME),MAX_OF(BLINK_OFF,LED_TIMER_MIN_BLINK_TIME),0,(OFF)}  \
 // ----------------------------------------------------------------------------------------------------------------
 
-#define FADE_TIME_BLINK(BLINK_ON,BLINK_OFF,BLINK_TIME,OFF) \
-    (led_time_config_struct_t){MAX_OF(BLINK_ON,LED_TIMER_MIN_BLINK_TIME),MAX_OF(BLINK_OFF,LED_TIMER_MIN_BLINK_TIME),MAX_OF(LED_TIMER_MIN_BLINK_TIME,BLINK_TIME),(OFF)}  \
+#define FADE_TIME_BLINK(FADE_IN,FADE_OUT,BLINK_TIME,OFF) \
+    (led_time_config_struct_t){MAX_OF(FADE_IN,LED_TIMER_MIN_BLINK_TIME),MAX_OF(FADE_OUT,LED_TIMER_MIN_BLINK_TIME),MAX_OF(LED_TIMER_MIN_BLINK_TIME,BLINK_TIME),(OFF)}  \
 
 // ----------------------------------------------------------------------------------------------------------------
 

@@ -40,6 +40,7 @@ static void extract_json(const char str[], uint16_t size);
 /// @param  void
 void flash_op_driver_init(void)
 {
+    ESP_LOGW(TAG,"flash op drv init");
     // read the partitions and init it
     esp_read_partition_table(&partition_pos);
 
@@ -54,6 +55,7 @@ void flash_op_driver_deinit(void)
     // clear the partition position data
     memset(&partition_pos, 0, sizeof(partition_pos));
 }
+
 
 /// @brief this will write new metadata so that bootloader can switch to DFU partition
 /// @param  void

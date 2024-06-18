@@ -15,7 +15,7 @@
 #include "freertos/queue.h"
 
 #define TAG "LED_DRV"
-wqeqwer
+
 // ==============================================================================================
 
 // ------------------------------------ registered callback -----------------------------------------------
@@ -85,6 +85,9 @@ static IRAM_ATTR bool Led_timer_evt_callback(gptimer_handle_t timer_handle, cons
 
     ///// stop the timer 
     gptimer_stop(led_timer_handle);
+    // reset the counter 
+    gptimer_set_raw_count(led_timer_handle,0);
+
     return high_task_woken;
 }
 
@@ -120,6 +123,7 @@ static IRAM_ATTR bool ledc_fade_callback(const ledc_cb_param_t* param, void* ues
 /// @param  void
 void led_driver_init(void)
 {
+    ESP_LOGW(TAG,"led drv init");
     // configure the timer
     static const ledc_timer_config_t led_timer_config = {
       .timer_num = LEDC_TIMER,
@@ -214,12 +218,16 @@ void led_driver_init(void)
     ledc_cb_register(LEDC_MODE, RED_COLOR_CHANNEL, &callback, NULL);
     ledc_cb_register(LEDC_MODE, GREEN_COLOR_CHANNEL, &callback, NULL);
     ledc_cb_register(LEDC_MODE, BLUE_COLOR_CHANNEL, &callback, NULL);
+
+
+    
 }
 
 /// @brief deinit the led driver
 /// @param  void
 void led_driver_deinit(void)
 {
+    ESP_LOGW(TAG,"deinit led driver ");
     // first suspend and delete the task
     vTaskSuspend(ledc_taskhandle);
     vTaskDelete(ledc_taskhandle);
@@ -234,9 +242,15 @@ void led_driver_deinit(void)
     gptimer_disable(led_timer_handle);
     gptimer_del_timer(led_timer_handle);
 
+    ledc_fade_func_uninstall();
     // disable and delete the LEDC driver
     ledc_timer_pause(LEDC_MODE, LEDC_TIMER);
-    ledc_fade_func_uninstall();
+    ledc_timer_rst(LEDC_MODE, LEDC_TIMER);
+
+    // make gpio as input 
+    gpio_set_direction(RED_COLOR_PIN, GPIO_MODE_INPUT);
+    gpio_set_direction(GREEN_COLOR_PIN, GPIO_MODE_INPUT);
+    gpio_set_direction(BLUE_COLOR_PIN, GPIO_MODE_INPUT);
 }
 
 /// @brief this registered callback called when the operation is complete (off time expires)
@@ -339,6 +353,7 @@ esp_err_t led_driver_blink_color(led_color_struct_t color, led_time_config_struc
     }
     // copy the color
     ledc_cmd_q_struct_t drv_cmd = {.cmd = LEDC_CMD_BLINK, .color = color, .time = time};
+
     // send the command to the q
     xQueueOverwrite(ledc_cmd_q_handle, &drv_cmd);
 
@@ -389,6 +404,11 @@ static void ledc_command_handler_task(void* args)
     led_fader_nums = 0;
 
     // some initing task
+    
+    ledc_stop(LEDC_MODE, RED_COLOR_CHANNEL, 0);
+    ledc_stop(LEDC_MODE, BLUE_COLOR_CHANNEL, 0);
+    ledc_stop(LEDC_MODE, GREEN_COLOR_CHANNEL, 0);
+    curr_state.current_state = LEDC_DRV_STATE_IDLE;
 
     ledc_cmd_q_struct_t ledc_cmd = {0};
     for (;;)
@@ -463,11 +483,7 @@ static void ledc_command_handler_task(void* args)
             case LEDC_CMD_OFF:
             case LEDC_CMD_IDLE:
             {
-                ledc_stop(LEDC_MODE, RED_COLOR_CHANNEL, 0);
-                ledc_stop(LEDC_MODE, BLUE_COLOR_CHANNEL, 0);
-                ledc_stop(LEDC_MODE, GREEN_COLOR_CHANNEL, 0);
-                curr_state.current_state = LEDC_DRV_STATE_IDLE;
-                goto run_to_idle;
+               goto reset_state;
             }
             break;
 
@@ -495,7 +511,6 @@ static void ledc_command_handler_task(void* args)
             // timer is resetted
             case LED_NOTIF_TIMER_EXPIRES:
             {
-
                 //// check if current time reaches the off time       
                 if (curr_state.current_time >= ledc_cmd.time.off_time)
                 {
@@ -523,7 +538,7 @@ static void ledc_command_handler_task(void* args)
 
                         curr_state.current_state = LEDC_DRV_STATE_SOLID;
                         // increment the tick
-                        curr_state.current_time +=  ledc_cmd.time.fade_out_time;
+                        curr_state.current_time +=  ledc_cmd.time.fade_in_time;
                         gptimer_alarm_config_t alarm_config = {.alarm_count = GET_ALARM_FROM_MSEC(ledc_cmd.time.fade_out_time)};
                         gptimer_set_alarm_action(led_timer_handle, &alarm_config);
                         
@@ -536,7 +551,7 @@ static void ledc_command_handler_task(void* args)
                         
                         curr_state.current_state = LEDC_DRV_STATE_OFF;
                         // increment the tick
-                        curr_state.current_time +=  ledc_cmd.time.fade_in_time;
+                        curr_state.current_time +=  ledc_cmd.time.fade_out_time;
                         
                         gptimer_alarm_config_t alarm_config = {.alarm_count = GET_ALARM_FROM_MSEC(ledc_cmd.time.fade_in_time)};
                         gptimer_set_alarm_action(led_timer_handle, &alarm_config);
@@ -565,8 +580,7 @@ static void ledc_command_handler_task(void* args)
                         
                 }
 
-                // set the timer for blink
-                gptimer_set_raw_count(led_timer_handle, 0);
+                ///start the timer 
                 gptimer_start(led_timer_handle);
 
                 // wait for notif

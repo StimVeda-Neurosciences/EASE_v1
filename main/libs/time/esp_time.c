@@ -6,6 +6,9 @@
 
 #include "rtc_wdt.h"
 
+#include "esp_log.h"
+
+#define TAG "ESP_time"
 
 // general purpose timer handle 
 static gptimer_handle_t timer_handle = NULL;
@@ -15,6 +18,7 @@ static gptimer_handle_t timer_handle = NULL;
 /// @param  void 
 void esp_timer_driver_init(void)
 {
+    ESP_LOGW(TAG,"esp timer init");
 static const gptimer_config_t timer_config = {
     .clk_src = GPTIMER_CLK_SRC_APB,
     .direction = GPTIMER_COUNT_UP,
@@ -31,6 +35,7 @@ static const gptimer_config_t timer_config = {
 /// @param  
 void esp_timer_driver_deinit(void)
 {
+    ESP_LOGW(TAG,"Timer deinit");   
     gptimer_stop(timer_handle);
     gptimer_disable(timer_handle);
     gptimer_del_timer(timer_handle);

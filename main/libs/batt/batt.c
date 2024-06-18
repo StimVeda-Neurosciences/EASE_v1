@@ -76,6 +76,8 @@ static void verify_write_fuel_gauge(uint8_t addr, uint16_t data) {
 void batt_driver_init(void)
 {
 
+  ESP_LOGW(TAG,"batt drv init");
+  
   i2c_config_t m5_config = {.mode = I2C_MODE_MASTER,
                             .sda_io_num = PIN_BATT_SDA,
                             .scl_io_num = PIN_BATT_SCL,

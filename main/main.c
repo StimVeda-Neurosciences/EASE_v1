@@ -15,6 +15,7 @@
 #include "tdcs.h"
 #include "esp_time.h"
 #include "flash_op.h"
+#include "app_desc.h"
 // ///////////////////////////////////////////////////////////////////////////////////////////////
 // ////////////////////////////////////////////////////////// function prototype
 
@@ -22,7 +23,7 @@ static const char * TAG = "main";
 
 #define ESP_BATT_CRITICAL_SOC 2
 
-#define IDLE_STATE_WAIT_TIME (1000 * 60 * 2) // 2 minutes 
+#define IDLE_STATE_WAIT_TIME (1000 * 60 * 1) // 2 minutes 
   //////// structure to store the tdcs message content format
 
 typedef uint32_t (*errors)(void);
@@ -157,7 +158,7 @@ void app_main(void)
     // / creating the timer
 
     ESP_LOGI(TAG,"the free heap memory is %ld", heap_caps_get_free_size(MALLOC_CAP_DEFAULT));
-
+    ESP_LOGI(TAG,"the image size %d",app_custom_desc.app_desc.app_size);
     // the general task start immediately, and its handle doesn't init at that moment 
     ble_start_driver(general_tsk_handle);
 
@@ -284,7 +285,7 @@ void generaltask(void* param)
         } else if (notf_val == DEV_STATE_BLE_DISCONNECTED)
         {
             ESP_LOGW(TAG,"Device disconnected ");
-
+            led_driver_blink_color(YELLOW_COLOR,BLINK_TIME_BOTH(200,500,IDLE_STATE_WAIT_TIME));
             //// function automatically destroy themselves
             tdcs_cmd.stop_type = tac_abort;
 
@@ -292,7 +293,7 @@ void generaltask(void* param)
         {
             ESP_LOGW(TAG,"Device connected ");
             // ///// check if the backgroud process  are done or not
-            led_driver_put_color(GREEN_COLOR);
+            led_driver_put_color(GREEN_COLOR, COLOR_TIME_MAX);
             sys_send_stats_code(STATUS_IDLE);
             sys_send_err_code(device_run_bios_test());
             // set the ble error code 
@@ -316,7 +317,7 @@ void generaltask(void* param)
 void function_waiting_task(void* param)
 {
 
-    uint16_t ESP_NO_OF_BLINKS = 0;
+    uint16_t blink_time = 0; /// blink time in  milliseconds 
 
     uint64_t prev_milli = millis();
 
@@ -349,7 +350,7 @@ device_ideal_state:
 
                 delay(50);
                 esp_ble_send_err_indication(err);
-                ESP_NO_OF_BLINKS = 150;
+                blink_time = 5;
                 goto dev_terminate;
             }
 
@@ -387,29 +388,21 @@ device_adv_state:
 
         if (*dev_connection == DEV_STATE_BLE_DISCONNECTED)
         {
-
-            ///  //////// this is not reliable here , the delay API .make the function to exit (blocked , so 1 sec tolrence is here)
-            led_driver_put_color(YELLOW_COLOR);
-            delay(500);
-            led_driver_put_color(NO_COLOR);
-            delay(500);
-
             if ((millis() - prev_milli) > IDLE_STATE_WAIT_TIME)
             {
-                ESP_NO_OF_BLINKS = 10;
+                blink_time = 5;
                 goto dev_terminate;
             }
 
             /// shutdown the device as battery is critically low
             if (batt_get_soc() <= ESP_BATT_CRITICAL_SOC)
             {
-                ESP_NO_OF_BLINKS = 150;
+                blink_time = 10;
                 goto dev_terminate;
             }
 
         } else
         {
-            led_driver_put_color(GREEN_COLOR);
             goto device_ideal_state;
         }
     }
@@ -420,15 +413,11 @@ dev_terminate:
     ble_stop_advertise();
     ble_disconnect_device();
     ESP_LOGW(TAG,"going to shut down");
-    ////////// this is the
-    for (uint8_t i = 0; i < ESP_NO_OF_BLINKS; i++)
-    {
-        led_driver_put_color(RED_COLOR);
-        delay(200);
-        led_driver_put_color(NO_COLOR);
-        delay(200);
-    }
+    
 
+    led_driver_blink_color(RED_COLOR,BLINK_TIME_BOTH(200,400,blink_time * 1000));
+
+    //// ultimatley call system shutdown
     system_shutdown();
 }
 
@@ -507,7 +496,7 @@ void function_tdcs_task(void* param)
     xTimerChangePeriod(tdcs_timer_handle, pdMS_TO_TICKS(tdcs_get_delay_Time()), TDCS_TIMER_WAIT_TIME);
 
     ///////////////// put the tdcs color
-    led_driver_put_color(BLUE_COLOR);
+    led_driver_put_color(BLUE_COLOR,COLOR_TIME_MAX);
 
     ESP_LOGI(TAG,"tdcs hardware inited");
 
@@ -582,7 +571,7 @@ return_mech:
     //// deinit the tdcs task
     tdcs_stop_prot();
 
-    led_driver_put_color(color);
+    led_driver_put_color(color,COLOR_TIME_MAX);
 
     sys_send_stats_code(STATUS_IDLE);
     send_idle_state = true;
@@ -652,7 +641,7 @@ void function_eeg_task(void* param)
     ///// we are sending the data at every 40 msec
     act_no_of_samp = eeg_cmd->timetill_run / GET_NO_OF_SAMPLES(EEG_DATA_SENDING_TIME,eeg_cmd->rate);
 
-    led_driver_put_color(PURPLE_COLOR);
+    led_driver_put_color(PURPLE_COLOR,COLOR_TIME_MAX);
     
 
     for (;;)
@@ -738,7 +727,7 @@ return_mech:
     ESP_LOGW(TAG,"eeg_func_destroy");
     //////// reset the message buffer
     eeg_stop_reading();
-    led_driver_put_color(color);
+    led_driver_put_color(color,COLOR_TIME_MAX);
 
     sys_send_stats_code(STATUS_IDLE);
     send_idle_state = true;

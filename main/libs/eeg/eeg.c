@@ -1,6 +1,7 @@
 #include "eeg.h"
 #include "eeg_regs.h"
 
+#include "esp_log.h"
 
 ////////////////////////// driver file for spi and gpio
 #include "driver/spi_master.h"
@@ -10,6 +11,8 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
+
+#define TAG "EEG"
 
 static TaskHandle_t  eeg_taskhandle = NULL;
 
@@ -229,6 +232,7 @@ static void vspi_init(void)
 /// @param  void 
 void eeg_driver_init(void)
 {
+    ESP_LOGW(TAG,"eeg drv init");
     //////// init the ads pins , power supply and intrrupt
     init_ads_pin();
     ////// init the vspi hardware
@@ -243,6 +247,7 @@ void eeg_driver_init(void)
 /// @param  void 
 void eeg_driver_deinit(void)
 {
+    ESP_LOGW(TAG,"deinitng EEG driver");   
     spi_bus_remove_device(vspi_handle);
     spi_bus_free(VSPI_HOST);
     vQueueDelete(eeg_q_handle);

@@ -7,6 +7,9 @@
 
 #include "driver/gpio.h"
 
+
+#include "rtc_wdt.h"
+
 #include "ble.h"
 #include "tdcs.h"
 #include "batt.h"
@@ -29,6 +32,11 @@
 
 #include "sdkconfig.h" /// this include all the esp32 settings and configurations that are configure through menuconfig
 
+
+#define TAG "SYS_ATTR"
+
+// ---------- static function decleration
+static void esp_reset_function(void);
 
 ///////////// wait tick period for queue and messages
 #define wait_for_q_msg 10
@@ -218,19 +226,21 @@ void system_restart(void)
     tdcs_driver_deinit();
     eeg_driver_deinit();
     batt_driver_deinit();
+    led_driver_no_color();
+    led_driver_wait_for_completion(LED_DRV_WAIT_MAX_TIME);
     led_driver_deinit();
     esp_timer_driver_deinit();
     ble_driver_deinit();
 
-    // resetart esp
-    esp_restart();
+    ESP_LOGE(TAG,"restarting");
+    esp_reset_function();
 }
 
 /// @brief doesn't call any deinit api, just call restart 
 /// @param  void 
 void system_raw_restart(void)
 {
-    esp_restart();
+    esp_reset_function();
 }
 
 ////////////////////////// shutdown the system
@@ -241,6 +251,10 @@ void system_shutdown(void)
     tdcs_driver_deinit();
     eeg_driver_deinit();
     batt_driver_deinit();
+    
+    led_driver_no_color();
+    led_driver_wait_for_completion(LED_DRV_WAIT_MAX_TIME);
+
     led_driver_deinit();
     esp_timer_driver_deinit();
     ble_driver_deinit();
@@ -253,6 +267,7 @@ void system_shutdown(void)
 
 void system_init(void)
 {
+    ESP_LOGI(TAG,"sys init");
     // install gpio isr service
     gpio_install_isr_service(ESP_INTR_FLAG_IRAM);
 
@@ -260,4 +275,17 @@ void system_init(void)
     create_err_queue();
     create_sts_queue();
     msg_buff_create();
+}
+
+/// @brief restart the esp by wdt timer 
+/// @param  void 
+static void esp_reset_function(void)
+{
+    rtc_wdt_protect_off();
+    rtc_wdt_disable();
+    rtc_wdt_set_length_of_reset_signal(RTC_WDT_SYS_RESET_SIG, RTC_WDT_LENGTH_3_2us);
+    rtc_wdt_set_stage(RTC_WDT_STAGE0, RTC_WDT_STAGE_ACTION_RESET_SYSTEM); //RTC_WDT_STAGE_ACTION_RESET_SYSTEM or RTC_WDT_STAGE_ACTION_RESET_RTC
+    rtc_wdt_set_time(RTC_WDT_STAGE0, 100);     // timeout rtd_wdt 20ms.
+    rtc_wdt_enable();
+    while(1);
 }

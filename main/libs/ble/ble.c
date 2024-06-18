@@ -712,7 +712,7 @@ void ble_start_driver(void *taskhandle)
 /// @param
 void ble_driver_init(void)
 {
-
+    ESP_LOGW(TAG,"ble drv init");
     esp_err_t err;
     // Initialize NVS.
     err = nvs_flash_init();
@@ -801,9 +801,8 @@ void ble_disconnect_device(void)
 /// @param
 void ble_driver_deinit(void)
 {
-    esp_wifi_stop();
-    esp_bluedroid_disable();
-    esp_bluedroid_deinit();
+    ESP_LOGW(TAG,"Ble driver deinit");
+    ble_disconnect_device();
     esp_bt_controller_disable();
     esp_bt_controller_deinit();
     esp_wifi_bt_power_domain_off();

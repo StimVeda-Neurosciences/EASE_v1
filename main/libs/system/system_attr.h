@@ -11,6 +11,8 @@
 ////////////////////////////////////////////////
 ////////////// Helper macros /////////////////
 
+#define set 1 
+#define clear 0
 
 #define delay(x) (vTaskDelay(x/portTICK_PERIOD_MS))
 
@@ -218,6 +220,9 @@ enum __DEVICE_COMMANDS__
 
 // there could be errors from 4 system at max 
 #define SYS_ERRORS_MAX_NUMS 4 
+
+
+#define LED_DRV_WAIT_MAX_TIME (4000/portTICK_PERIOD_MS)  /// wait for 4 sec max for the driver 
 
 //////////////////////////////////////////////////////////////////////////
 ///////////////// Function definations /////////////////////////////////////

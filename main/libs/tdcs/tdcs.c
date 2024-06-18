@@ -151,6 +151,7 @@ static void init_tdcs_gpio(void)
 /// @param  void 
 void tdcs_driver_init(void)
 {
+    ESP_LOGW(TAG,"tdcs drv init");
     init_tdcs_gpio();
 
     // init the adc driver 
@@ -236,6 +237,7 @@ uint32_t tdcs_verify_component(void)
 /// @param  void 
 void tdcs_driver_deinit(void)
 {
+    ESP_LOGW(TAG,"deinit tdcs drver");
     if (hspi_handle != NULL)
     {
         assert(!spi_bus_remove_device(hspi_handle));

@@ -9,6 +9,7 @@ import sys
 import struct 
 import json
 import hashlib
+import binascii
 
 RED = '\033[91m'
 GREEN = '\033[92m'
@@ -22,33 +23,7 @@ RESET = '\033[0m'
 # input bin file 
 in_file = sys.argv[1]
 
-# Pack the data into binary format
-# packed_data = struct.pack(struct_format, *data)
-# packed_data = packed_data.ljust(100, b'\x00')  # Ensure it's 100 bytes long
 
-app_data_json = {"Hardware ver": "234SD" ,
-    "Serial num": "35861206023","Firmware ver": "V1.2.2",
-    "Device num": "XXXXXX", "Manuf. name": "Marbles.Health"}
-
-app_hdr_data = (str(app_data_json) + "\0").encode('utf-8')
-print(app_hdr_data)
-
-position = 351  # calculated by estmating the size of the image_hdr + segment_hdr + app_descriptor 
-print(f"{RED} modifying the header of {in_file}  and len to write {len(app_hdr_data)} {RESET}")
-
-# Write the binary data to a file
-with open(in_file, 'r+b') as f:
-    f.seek(position)
-    f.write(app_hdr_data)
-
-
-# after writing the data we also have to correct the checksum and hash appended of the binary 
-
-uint32_max = 0xFFFFFFFF
-uint8_t_max = 0xFF
-
-
-INT_SIZE = 4
 # esp_app_descriptor_size = 256
 
 ''' 
@@ -110,68 +85,191 @@ def calculate_file_sha256(file_path, file_len):
 #                                  * For secure boot signed images, the signature
 #                                  * is appended after this (and the simple hash is included in the signed data). */
 
-# Define the structure format
-ESP_IMAGE_HEADER_STRUCT_FORMAT = '<BBBB IB3BHB HH4BB'
-
-esp_image_hdr_struct =0
-
-with open(in_file,"rb") as f:
-    f.seek(0)
-    print(f"{GREEN} reading the size from struct {struct.calcsize(ESP_IMAGE_HEADER_STRUCT_FORMAT)} from {in_file} {RESET}")
-    esp_image_hdr_struct = f.read(struct.calcsize(ESP_IMAGE_HEADER_STRUCT_FORMAT))
-    
-esp_image_hdr = struct.unpack(ESP_IMAGE_HEADER_STRUCT_FORMAT, esp_image_hdr_struct)
-
-ESP_SEGMENT_COUNT = esp_image_hdr[1]
-
-print(f"{GREEN} the magic no is {esp_image_hdr[0]} and segment count is {esp_image_hdr[1]} {RESET}") 
-
-
-# ===========================================================================
-# get the total no of segment data length
-
-segment_offset = struct.calcsize(ESP_IMAGE_HEADER_STRUCT_FORMAT)
-
 # typedef struct {
-#     uint32_t load_addr;     /*!< Address of segment */
-#     uint32_t data_len;      /*!< Length of data */
-# } esp_image_segment_header_t;
+#     uint32_t magic_word;        /*!< Magic word ESP_APP_DESC_MAGIC_WORD */
+#     uint32_t secure_version;    /*!< Secure version */
+#     uint32_t reserv1[2];        /*!< reserv1 */
+#     char version[32];           /*!< Application version */
+#     char project_name[32];      /*!< Project name */
+#     char time[16];              /*!< Compile time */
+#     char date[16];              /*!< Compile date*/
+#     char idf_ver[32];           /*!< Version IDF */
+#     uint8_t app_elf_sha256[32]; /*!< sha256 of elf file */
+#     uint32_t reserv2[20];       /*!< reserv2 */
+# } esp_app_desc_t;
 
+
+# /// @brief app descriptor structure
+# typedef struct __ESP_APP_CUSTOM_DESCP__
+# {
+#     uint32_t magic_number;
+#     uint16_t size; // size would only be until app_extra_size
+
+#     /// @brief  the app descriptor header version
+#     ota_header_version_t hdr_ver;
+#     /// @brief app version
+#     ota_header_version_t app_ver;
+#     /// @brief app name is null terminated
+#     const char app_name[APP_NAME_LEN];
+#     // describe the app type, DFU, APP
+#     uint8_t app_type;
+#     uint32_t app_size;
+
+#     /// @brief app verification state same as app state in ota meta data
+#     uint32_t app_verif_state;
+#     /// @brief booting state of the app same as boot index
+#     uint32_t app_boot_state;
+
+#     // this contains the sizeof(app_rfu) + sizeof(app_crash) == (sizeof(anyone)/2)
+#     uint32_t app_extra_size;
+
+#     uint8_t extra_mem[0]; // flexible array member
+# } PACKED esp_app_custom_desc_t;
+
+# Define the structure format -===== esp_image_header + esp_segmnet_header + esp_custom_descriptor --> esp_descriptor 
+ESP_IMAGE_HEADER_STRUCT_FORMAT = '<BBBB IB 3B H B HH 4BB'
 ESP_IMAGE_SEGMENT_HEADER_STRUCT_FORMAT = '<II'
+ESP_APP_DESCRIPTOR_STRUCT_FORMAT = '<I I 2I 32b 32b 16b 16b 32b 32B 20I'
+ESP_APP_CUSTOM_DESC_STRUCT_FORMAT = '<I H 4B 4B 32b BI II I'
 
-# read the offset of the segment and find where the checksum and hash are present 
-for x in range(ESP_SEGMENT_COUNT):
-    # read the segment offset 
-    with open(in_file , "rb") as f: 
-        f.seek(segment_offset)
-        segment_data_struct = f.read(struct.calcsize(ESP_IMAGE_SEGMENT_HEADER_STRUCT_FORMAT))
-        segment_data =struct.unpack(ESP_IMAGE_SEGMENT_HEADER_STRUCT_FORMAT,segment_data_struct)
-        # segment data length is presen at first index 
-        segment_offset += segment_data[1] + struct.calcsize(ESP_IMAGE_SEGMENT_HEADER_STRUCT_FORMAT)
-        print(f"the segment is {x} and len is {hex(segment_data[1])}, offset {hex(segment_data[0])} ")
+ESP_APP_CUSTOM_DESC_SIZE_INDEX = '<I H 4B 4B 32b B'
+
+APP_CUSTOM_DESCRIPTOR_APP_SIZE = '<I'
+
+
+'''calculate the image length of the binary '''
+def calculate_image_len():    
+    global in_file
+    global ESP_IMAGE_HEADER_STRUCT_FORMAT,ESP_IMAGE_SEGMENT_HEADER_STRUCT_FORMAT
+    global ESP_APP_DESCRIPTOR_STRUCT_FORMAT,ESP_APP_CUSTOM_DESC_SIZE_INDEX
+    
+    esp_image_hdr =0
+
+    with open(in_file,"rb") as f:
+        f.seek(0)
+        print(f"{GREEN} reading size {struct.calcsize(ESP_IMAGE_HEADER_STRUCT_FORMAT)} from {in_file} {RESET}")
+        esp_image_hdr_struct_bytes = f.read(struct.calcsize(ESP_IMAGE_HEADER_STRUCT_FORMAT))
+        esp_image_hdr = struct.unpack(ESP_IMAGE_HEADER_STRUCT_FORMAT, esp_image_hdr_struct_bytes)
+
+    segment_count = esp_image_hdr[1]
+
+    print(f"{GREEN} the magic no is {esp_image_hdr[0]} and segment count is {esp_image_hdr[1]} {RESET}") 
+
+
+    segment_offset = struct.calcsize(ESP_IMAGE_HEADER_STRUCT_FORMAT)
+
+    # typedef struct {
+    #     uint32_t load_addr;     /*!< Address of segment */
+    #     uint32_t data_len;      /*!< Length of data */
+    # } esp_image_segment_header_t;
+
+
+    # read the offset of the segment and find where the checksum and hash are present 
+    for x in range(segment_count):
+        # read the segment offset 
+        with open(in_file , "rb") as f: 
+            f.seek(segment_offset)
+            # read the segment header structure from the binary 
+            segment_data_struct = f.read(struct.calcsize(ESP_IMAGE_SEGMENT_HEADER_STRUCT_FORMAT))
+            segment_data =struct.unpack(ESP_IMAGE_SEGMENT_HEADER_STRUCT_FORMAT,segment_data_struct)
+            # segment data length is presen at first index , also add the segment header size (also contribute to size)
+            segment_offset += segment_data[1] + struct.calcsize(ESP_IMAGE_SEGMENT_HEADER_STRUCT_FORMAT)
+            print(f"the segment is {x} and len is {hex(segment_data[1]).zfill(8)}, Load {hex(segment_data[0]).zfill(8)}  ")
+            
+    # /// return the segment count and segment offset 
+    return segment_count,segment_offset
+
+
+def bin_write_app_desc_custom_data(app_data:dict):
+    global in_file
+    global ESP_IMAGE_HEADER_STRUCT_FORMAT,ESP_IMAGE_SEGMENT_HEADER_STRUCT_FORMAT
+    global ESP_APP_DESCRIPTOR_STRUCT_FORMAT,ESP_APP_CUSTOM_DESC_SIZE_INDEX
+    # Pack the data into binary format
+    # packed_data = struct.pack(struct_format, *data)
+    # packed_data = packed_data.ljust(100, b'\x00')  # Ensure it's 100 bytes long
+    app_hdr_data = (str(app_data_json) + "\0").encode('utf-8')
+    print(app_hdr_data)
+     
+    # calculated by estmating the size of the image_hdr + segment_hdr + app_descriptor 
+    offset = struct.calcsize(ESP_IMAGE_HEADER_STRUCT_FORMAT) +  \
+            struct.calcsize(ESP_IMAGE_SEGMENT_HEADER_STRUCT_FORMAT) +   \
+            struct.calcsize(ESP_APP_DESCRIPTOR_STRUCT_FORMAT) + \
+            struct.calcsize(ESP_APP_CUSTOM_DESC_STRUCT_FORMAT)
+            
+    print(f"{RED} modifying the header of {in_file} at offset {offset}  and len to write {len(app_hdr_data)} {RESET}")
+
+    # Write the binary data to a file
+    with open(in_file, 'r+b') as f:
+        f.seek(offset)
+        f.write(app_hdr_data)
+
+
+
+''' write and read the app size to the custom descriptor '''
+def write_and_read_app_size(image_len: int ):
+    global in_file
+    global ESP_IMAGE_HEADER_STRUCT_FORMAT,ESP_IMAGE_SEGMENT_HEADER_STRUCT_FORMAT
+    global ESP_APP_DESCRIPTOR_STRUCT_FORMAT,ESP_APP_CUSTOM_DESC_SIZE_INDEX
+    
+    offset = struct.calcsize(ESP_IMAGE_HEADER_STRUCT_FORMAT) +  \
+            struct.calcsize(ESP_IMAGE_SEGMENT_HEADER_STRUCT_FORMAT) +   \
+            struct.calcsize(ESP_APP_DESCRIPTOR_STRUCT_FORMAT) + \
+            struct.calcsize(ESP_APP_CUSTOM_DESC_SIZE_INDEX)
+    
+    print(f"{GREEN} writing the image length of {image_len} to the offset {offset}  to {in_file} {RESET}")
+    with open(in_file,"r+b")as f:
+        # mmove to that position and write the size 
+        f.seek(offset)
+        f.write(struct.pack(APP_CUSTOM_DESCRIPTOR_APP_SIZE, image_len))
+    
+    with open(in_file, "rb")as f:
+        f.seek(offset)
+        app_size_bytes = f.read(struct.calcsize(APP_CUSTOM_DESCRIPTOR_APP_SIZE))
+        app_size = struct.unpack(APP_CUSTOM_DESCRIPTOR_APP_SIZE, app_size_bytes)
+        print(f"the app size from the bin is {app_size[0]}") 
+    
+    
+    
+
+def write_and_read_image_hash(image_len):
+    global in_file
+    # since cehksum is present at a 16 byte boundary , we have to find the offset with respect to last address 
+    padded_byte_boundary = 16-(image_len%16)
+    hash_struct_format = "<32B"
+    
+    bin_image_sha =  calculate_file_sha256(in_file,image_len)
+    # .write own sha hash on the image 
+    # calculate the sha and show to user 
+    print(f"the SHA of the file is {bin_image_sha}")
         
-# the segment offset is 
-print(f"{RED} the total segment len is {hex(segment_offset)} {RESET}")
-
-# since cehksum is present at a 16 byte boundary , we have to find the offset with respect to last address 
-padded_byte_boundary = 16-(segment_offset%16)
-hash_struct_format = f"<{padded_byte_boundary}B32B"
-
-# now read 50 bytes from here 
-with open(in_file,"rb")as f:
-    f.seek(segment_offset)
-    in_data_bytes = f.read(struct.calcsize(hash_struct_format))
-    in_struct =  struct.unpack(hash_struct_format, in_data_bytes) 
-    #  Convert the tuple of bytes to a bytes object
-    checksum = ''.join(hex(ele).removeprefix('0x').zfill(2) for ele in in_struct[:padded_byte_boundary]) 
-    hash_struct = [hex(x) for x in in_struct[padded_byte_boundary:]]
-    hash_str = ''.join(ele.removeprefix('0x').zfill(2) for ele in hash_struct)
-    print(f"checkusm = {checksum}")
-    print(hash_str)
+    # write the new hash to the file 
+    with open(in_file,"r+b")as f:
+        f.seek(image_len + padded_byte_boundary)
+        # unhexify the sha string to hex bytes an write to the vlaue
+        f.write(binascii.unhexlify(bin_image_sha))
+        
+    # -================ read the image sha from the file ============================ 
+    with open(in_file,"rb") as f:
+        f.seek(image_len + padded_byte_boundary)
+        in_data_bytes = f.read(struct.calcsize(hash_struct_format))
+        hash_data =  struct.unpack(hash_struct_format, in_data_bytes) 
+        hash_str = ''.join(hex(ele).removeprefix('0x').zfill(2) for ele in hash_data)
+        print(f"the SHA raead from the file {hash_str}")
     
-    
-print("================================================")
 
-# .write own sha hash on the image 
-# calculate the sha and show to user 
-print("the size of the file is ",calculate_file_sha256(in_file,segment_offset))
+
+app_data_json = {"Hardware ver": "234SD" ,
+    "Serial num": "35861206023","Firmware ver": "V1.2.2",
+    "Device num": "XXXXXX", "Manuf. name": "Marbles.Health"}
+
+
+
+bin_write_app_desc_custom_data(app_data_json)
+segment_count,image_len = calculate_image_len()
+
+print(f"{RED} the segment count {segment_count} and image len is {image_len}  {RESET}")
+# read and write the image size 
+write_and_read_app_size(image_len)
+write_and_read_image_hash(image_len)
+
+

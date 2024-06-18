@@ -6,11 +6,14 @@
 
 #include "esp_attr.h"
 #include "esp_err.h"
+
 #include "esp_log.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"
+
+#define TAG "LED_DR"
 
 #define LED_DRIVER_FREQ (1 * 1000 * 5) // 50 KHZ
 #define LED_TIMER_RESOLUTION LEDC_TIMER_13_BIT
@@ -121,9 +124,19 @@ void led_driver_init(void)
 /// @param  void
 void led_driver_deinit(void)
 {
-    ledc_set_duty(LEDC_MODE,RED_COLOR_CHANNEL,)
-    ledc_timer_pause(LEDC_MODE,LEDC_TIMER);
+    ESP_LOGW(TAG,"ledc driver deint");
     ledc_fade_func_uninstall();
+
+    ledc_set_duty(LEDC_MODE,RED_COLOR_CHANNEL,0);
+    ledc_set_duty(LEDC_MODE,GREEN_COLOR_CHANNEL,0);
+    ledc_set_duty(LEDC_MODE,BLUE_COLOR_CHANNEL,0);
+    
+    ledc_update_duty(LEDC_MODE,RED_COLOR_CHANNEL);
+    ledc_update_duty(LEDC_MODE,GREEN_COLOR_CHANNEL);
+    ledc_update_duty(LEDC_MODE,BLUE_COLOR_CHANNEL);
+
+    ledc_timer_pause(LEDC_MODE,LEDC_TIMER);
+    ledc_timer_rst(LEDC_MODE,LEDC_TIMER);
 }
 
 /// @brief put the color on the led
