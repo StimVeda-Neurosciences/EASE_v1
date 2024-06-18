@@ -3,7 +3,7 @@
 #include "batt.h"
 #include "batt_regs.h"
 
-#include "sys_attr.h"
+#include "system_attr.h"
 #include "ble.h"
 
 #include"freertos/FreeRTOS.h"

@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#include "sys_attr.h"
+#include "system_attr.h"
 #include "esp_err.h"
 
 #include "flash_op_private.h"

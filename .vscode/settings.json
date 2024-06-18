@@ -36,7 +36,8 @@
         "esp_adc_cal_types_legacy.h": "c",
         "adc_types_legacy.h": "c",
         "timers.h": "c",
-        "ringbuf.h": "c"
+        "ringbuf.h": "c",
+        "system_attr.h": "c"
     },
     "python.REPL.enableREPLSmartSend": false
 }

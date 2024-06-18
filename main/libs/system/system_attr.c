@@ -3,7 +3,7 @@
 #include "string.h"
 #include "math.h"
 
-#include "sys_attr.h"
+#include "system_attr.h"
 
 #include "driver/gpio.h"
 

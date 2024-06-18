@@ -1,7 +1,7 @@
 #pragma once 
 
 #include <stdio.h>
-#include "sys_attr.h"
+#include "system_attr.h"
 
 
 
