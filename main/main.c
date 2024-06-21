@@ -408,6 +408,7 @@ device_adv_state:
     for (;;)
     {
 
+        delay(100);
         if (*dev_state == DEV_STATE_BLE_DISCONNECTED)
         {
             if ((millis() - prev_milli) > IDLE_STATE_WAIT_TIME)
