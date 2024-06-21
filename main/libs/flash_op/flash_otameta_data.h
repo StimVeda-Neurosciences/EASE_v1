@@ -30,7 +30,9 @@ typedef enum __OTA_APP_IMAGE_STATE__
     OTA_IMAGE_CORRUPTED   = 0xE2UL,
     OTA_IMAGE_NOT_PRESENT = 0xE1UL,
     // image verified 
-    OTA_IMAGE_VERIFIED =  0x00UL
+    OTA_IMAGE_VERIFIED =  0x02UL,
+    /// @brief image invalid 
+    OTA_IMAGE_INVALID = 0x00,
 
 } ota_app_image_state_enum_t;
 
@@ -233,6 +235,12 @@ typedef struct __OTA_META_STRUCT__
 #define OTA_MODF_OFFS_END   (OFFSET_OF(ota_metd_struct_t,state))
 
 
+
+/// @brief this will print the ota meta data 
+/// @param otadata 
+/// @param bytes 
+void esp_flash_print_otadata(uint32_t  * otadata, size_t bytes);
+
 /// @brief write the OTA meta data into the ota meta sector
 /// @param part_struct
 /// @param data
@@ -283,3 +291,4 @@ esp_err_t esp_read_flash_ota_data(const esp_flash_partition_struct_t *part_struc
 /// @param ata
 /// @return err/succ
 esp_err_t esp_read_flash_ota_data_fromsector(const esp_flash_partition_struct_t *part_struct, uint8_t sec_no, ota_metd_struct_t *data);
+

@@ -4,7 +4,7 @@
 // include the pirvate OTA defs
 #include "flash_op_private.h"
 #include "flash_otameta_data.h"
-// this app descriptor let's us to store value attributes related to app 
+// this app descriptor let's us to store value attributes related to app
 #include "app_desc.h"
 
 #include "esp_log.h"
@@ -23,10 +23,9 @@ static esp_flash_partition_struct_t partition_pos;
 /// @return succ/failure
 static esp_err_t esp_get_dfu_boot_partition(ota_metd_struct_t *part);
 
-/// @brief extract the system attributes related to hardware number,serial num,device number 
-/// @param  
+/// @brief extract the system attributes related to hardware number,serial num,device number
+/// @param
 static void extract_system_attributes(void);
-
 
 /// @brief this is a very simple json extractor
 /// @param str
@@ -40,7 +39,7 @@ static void extract_json(const char str[], uint16_t size);
 /// @param  void
 void flash_op_driver_init(void)
 {
-    ESP_LOGW(TAG,"flash op drv init");
+    ESP_LOGW(TAG, "flash op drv init");
     // read the partitions and init it
     esp_read_partition_table(&partition_pos);
 
@@ -55,7 +54,6 @@ void flash_op_driver_deinit(void)
     // clear the partition position data
     memset(&partition_pos, 0, sizeof(partition_pos));
 }
-
 
 /// @brief this will write new metadata so that bootloader can switch to DFU partition
 /// @param  void
@@ -86,7 +84,7 @@ esp_err_t flash_op_switch_to_dfu(void)
         EXIT_IF_ERR(err);
 
         // now write new fresh data
-        esp_write_ota_data_fresh(&partition_pos, &temp_data);
+        err = esp_write_ota_data_fresh(&partition_pos, &temp_data);
         EXIT_IF_ERR(err);
     }
     else
@@ -95,23 +93,17 @@ esp_err_t flash_op_switch_to_dfu(void)
         err = esp_read_flash_ota_data(&partition_pos, &temp_data);
         EXIT_IF_ERR(err);
 
+        esp_flash_print_otadata(&temp_data, sizeof(temp_data));
+
         // get the dfu boot partition index
         err = esp_get_dfu_boot_partition(&temp_data);
         EXIT_IF_ERR(err);
-
-        uint16_t offset = (temp_data.boot_index.dfu_image == BOOT_INDEX_READY) ? OFFSET_OF(ota_metd_struct_t, boot_index.dfu_image) : OFFSET_OF(ota_metd_struct_t, boot_index.dfu_backup_image);
-        // can we modify the content
-        err = esp_modify_ota_data(&partition_pos, offset, BOOT_INDEX_READY);
-
-        // no , then write the new data
-        if (err == ERR_SYS_INVALID_DATA)
-        {
-            // write new data
-            err = esp_flash_write_ota_data(&partition_pos, &temp_data);
-            EXIT_IF_ERR(err);
-        }
+        // write new data
+        err = esp_flash_write_ota_data(&partition_pos, &temp_data);
+        EXIT_IF_ERR(err);
     }
 
+    return ESP_OK;
 err:
     ESP_LOGE(TAG, "error occured ");
     return err;
@@ -137,7 +129,7 @@ esp_err_t flash_op_read_boot_fail_type(uint32_t *failure)
 uint32_t flash_op_get_boot_errs(void)
 {
     uint32_t err = 0;
-    
+
     return err;
 }
 
@@ -149,9 +141,9 @@ uint32_t flash_op_get_boot_errs(void)
 /// @brief get the input string from the flash/DROM
 /// @param  void
 /// @return hardware revision string
-const char * flash_app_get_info(flash_app_info_index_t index)
+const char *flash_app_get_info(flash_app_info_index_t index)
 {
-    const char *str_to_srch=NULL;
+    const char *str_to_srch = NULL;
     switch (index)
     {
     case flash_app_info_Hardware_num:
@@ -164,43 +156,42 @@ const char * flash_app_get_info(flash_app_info_index_t index)
     case flash_app_info_firmware_num:
         str_to_srch = "Firmware ver";
         break;
-    
+
     case flash_app_info_device_num:
         str_to_srch = "Device num";
         break;
 
     case flash_app_info_app_manuf_name:
         str_to_srch = "Manuf. name";
-    break;
+        break;
 
     case flash_app_info_app_name:
         return app_custom_desc.app_desc.app_name;
         // str_to_srch = "App name";
         break;
     default:
-        return " "; // this is intended as the strlen won;t give an error 
+        return " "; // this is intended as the strlen won;t give an error
         break;
     }
 
-    int  index_to_srch =-1;
-    // run a for loop and compare the str in the key value 
-    for(int i=0; i<MAX_NO_OF_KEY_ATTR; i++)
+    int index_to_srch = -1;
+    // run a for loop and compare the str in the key value
+    for (int i = 0; i < MAX_NO_OF_KEY_ATTR; i++)
     {
-        if(strncmp(key_value[i][0],str_to_srch,strlen(str_to_srch)) == 0)
+        if (strncmp(key_value[i][0], str_to_srch, strlen(str_to_srch)) == 0)
         {
             index_to_srch = i;
             break;
         }
     }
-    if(index_to_srch == -1)
+    if (index_to_srch == -1)
     {
         return " ";
     }
 
-    // /return the string 
+    // /return the string
     return key_value[index_to_srch][1];
 }
-
 
 // ===========================================================================================
 // ----------------------------------------- static functions here ---------------------------
@@ -235,23 +226,22 @@ static esp_err_t esp_get_dfu_boot_partition(ota_metd_struct_t *part)
     return ESP_OK;
 }
 
-/// @brief extract the system attributes related to hardware number,serial num,device number 
-/// @param  
+/// @brief extract the system attributes related to hardware number,serial num,device number
+/// @param
 static void extract_system_attributes(void)
 {
     const char *str = (const char *)app_custom_desc.app_extra_mem;
-    extract_json(str,strlen(str));
+    extract_json(str, strlen(str));
 
-    ESP_LOGW(TAG,"the APP attributes are ");
-    // show this json to user 
+    ESP_LOGW(TAG, "the APP attributes are ");
+    // show this json to user
     for (size_t i = 0; i < MAX_NO_OF_KEY_ATTR; i++)
     {
-        printf("%s::%s ||",key_value[i][0],key_value[i][1]);
+        printf("%s::%s ||", key_value[i][0], key_value[i][1]);
     }
-    
 }
 
-/// @brief this is a very simple json extractor, make sure the string in json doesn't exceed 20 byte 
+/// @brief this is a very simple json extractor, make sure the string in json doesn't exceed 20 byte
 /// @param str
 /// @param size
 static void extract_json(const char str[], uint16_t size)
@@ -297,7 +287,10 @@ static void extract_json(const char str[], uint16_t size)
             if (startstring)
             {
                 // only store upto maxlen-2 cause at maxlen-1 == "\0"==0==static arr init value
-                if(iter >= (MAX_LEN_OF_KEY_ATTR-2)){continue;}
+                if (iter >= (MAX_LEN_OF_KEY_ATTR - 2))
+                {
+                    continue;
+                }
                 // record the value
                 if (srch_value)
                 {

@@ -31,7 +31,7 @@ static TaskHandle_t batt_taskhandle;
 static StackType_t batt_Task_stack_mem[BATT_TASK_STACK_DEPTH];
 static StaticTask_t batt_task_tcb;
 
-#define battery_state_change_update_time 500
+#define battery_state_change_update_time 600
 
 
 

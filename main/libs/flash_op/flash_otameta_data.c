@@ -171,6 +171,26 @@ esp_err_t esp_flash_dump_ota_data(esp_flash_partition_struct_t *part_struct, uin
     return ESP_OK;
 }
 
+/// @brief this will print the ota meta data 
+/// @param otadata 
+/// @param bytes 
+void esp_flash_print_otadata(uint32_t  * otadata, size_t bytes)
+{
+    
+    uint32_t word_size = (bytes / 4) + 1;
+    for (uint16_t i = 0; i < word_size; i++)
+    {
+        esp_rom_printf("%x ", otadata[i]);
+
+        if ((i > 0) && !((i + 1) % (OTA_METAD_SIZE / 4)))
+        {
+            esp_rom_printf("\r\n");
+        }
+    }
+    esp_rom_printf("\r\nend of data \r\n");
+}
+
+
 /// @brief get the size used by OTA meta data
 /// @param part_struct
 /// @param sec_no

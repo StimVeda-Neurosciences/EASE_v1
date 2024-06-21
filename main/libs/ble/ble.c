@@ -443,11 +443,11 @@ void gatts_events_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, es
 
             ////////// saving the connection id
             connection_id = param->connect.conn_id;
+            // set the power level for BLE advertisement
+            esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_CONN_HDL0, ESP_PWR_LVL_N12);
 
             // ///////////send the connected message to core 1
             xTaskNotify(general_Taskhandle, DEV_STATE_BLE_CONNECTED, eSetValueWithOverwrite);
-            // set the power level for BLE advertisement
-            esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_CONN_HDL0, ESP_PWR_LVL_N12);
         }
         /////////////////////////////////////
         break;
@@ -575,6 +575,7 @@ void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *par
         // {
         //     esp_ble_gap_start_advertising(&adv_params);
         // }
+                
         break;
     case ESP_GAP_BLE_SCAN_RSP_DATA_SET_COMPLETE_EVT:
         adv_config_done &= (~scan_rsp_config_flag);
@@ -706,6 +707,17 @@ void ble_start_driver(void *taskhandle)
     adv_config_done |= scan_rsp_config_flag;
 
     general_Taskhandle = (TaskHandle_t)taskhandle;
+
+    // also check if ble adapter is ready 
+    while(esp_bluedroid_get_status() != ESP_BLUEDROID_STATUS_ENABLED)
+    {
+        printf("waintng for bluedroid to enable\r\n");
+        // waiting to get bluedroid enable 
+    }
+    // after that notify the task 
+    // sending task notifi
+    ESP_LOGW(TAG,"sending task notif ");
+    xTaskNotify(general_Taskhandle,DEV_STATE_BLE_READY, eSetValueWithOverwrite);
 }
 
 /// @brief init the ble functionality

@@ -155,7 +155,7 @@ void esp_read_partition_table(esp_flash_partition_struct_t *part_struct)
     int num_partitions;
 
     // map the partition address flash to cpu map
-    partitions = esp_flash_mmap(ESP_PARTITION_TABLE_OFFSET, ESP_PARTITION_TABLE_MAX_LEN);
+    partitions = esp_flash_mmap(CUSTOM_PARTITION_TABLE_OFFSET, CUSTOM_PARTITION_TABLE_MAX_LEN);
     if (!partitions)
     {
         ESP_LOGE(TAG, "bootloader_mmap(0x%x, 0x%x) failed", ESP_PARTITION_TABLE_OFFSET, ESP_PARTITION_TABLE_MAX_LEN);

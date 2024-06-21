@@ -85,10 +85,10 @@ typedef struct __LED_TIEM_CONFIG__
 
 // ----------------------------------------------------------------------------------------------------------------
 
-#define BLINK_TIME_BOTH_MAX(BLINK_ON,BLINK_OFF)     \
+#define BLINK_TIME_BOTH_MAX(BLINK_OFF,BLINK_ON)     \
     (led_time_config_struct_t){MAX_OF(BLINK_ON,LED_TIMER_MIN_BLINK_TIME),MAX_OF(BLINK_OFF,LED_TIMER_MIN_BLINK_TIME),0,LED_OFF_TIME_MAX}  \
 
-#define BLINK_TIME_BOTH(BLINK_ON,BLINK_OFF,OFF)     \
+#define BLINK_TIME_BOTH(BLINK_OFF,BLINK_ON,OFF)     \
     (led_time_config_struct_t){MAX_OF(BLINK_ON,LED_TIMER_MIN_BLINK_TIME),MAX_OF(BLINK_OFF,LED_TIMER_MIN_BLINK_TIME),0,(OFF)}  \
 // ----------------------------------------------------------------------------------------------------------------
 
