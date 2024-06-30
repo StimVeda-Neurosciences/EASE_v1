@@ -372,21 +372,15 @@ void gatts_events_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, es
             {
                 if (STATUS_PWR_OFF == param->write.value[0])
                 {
-                    ESP_LOGW(TAG, "shuting down system");
-                    system_shutdown();
+                    xTaskNotify(general_Taskhandle, DEV_STATE_SHUTDOWN, eSetValueWithOverwrite);
                 }
                 else if ( STATUS_DEVICE_RESTART == param->write.value[0] )
                 {
-                    ESP_LOGW(TAG,"restarting device");
-                    system_restart();
+                        xTaskNotify(general_Taskhandle, DEV_STATE_RESTART, eSetValueWithOverwrite);
                 }
                 else if(STATUS_OTA ==  param->write.value[0])
                 {
-                    esp_err_t err = flash_op_switch_to_dfu();
-                    if(err != ESP_OK)
-                    {
-                        esp_ble_send_err_indication(err);
-                    }
+                    xTaskNotify(general_Taskhandle, DEV_STATE_SWITCH_OTA, eSetValueWithOverwrite);
                 }
             }
 
@@ -715,8 +709,6 @@ void ble_start_driver(void *taskhandle)
         // waiting to get bluedroid enable 
     }
     // after that notify the task 
-    // sending task notifi
-    ESP_LOGW(TAG,"sending task notif ");
     xTaskNotify(general_Taskhandle,DEV_STATE_BLE_READY, eSetValueWithOverwrite);
 }
 

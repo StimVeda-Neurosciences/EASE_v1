@@ -42,17 +42,17 @@ static SemaphoreHandle_t ledc_semphr_handle;
 static StaticSemaphore_t static_semaphore_control_block;
 
 // this led fader number makes such that it only send semphr when all the led finish operations
-static uint8_t led_fader_nums;
+static volatile uint8_t led_fader_nums;
 
 // store the driver current state
-static ledc_driver_state_struct_t curr_state;
+static volatile ledc_driver_state_struct_t curr_state;
 
 // ---------------------------------------------------------------------------------------------------------
 // ------------------------ creating a task for the ledc for manging led configurations -------------
 // ------------------------ ledc task for controlling led --------------------------------------------------
 
 #define LED_TASK_PARAM       NULL
-#define LED_TASK_CPU         APP_CPU
+#define LED_TASK_CPU         PRO_CPU
 #define LED_TASK_PRIORITY    PRIORITY_4
 #define LED_TASK_STACK_DEPTH 2048
 #define LED_TASK_NAME        "LEDC_TASK"
@@ -72,14 +72,14 @@ static TaskHandle_t caller_task_handle;
 /// @param timer_alarm
 static void ledc_config_timer(size_t timer_alarm);
 
-/// @brief set the color on the led 
-/// @param color 
+/// @brief set the color on the led
+/// @param color
 static void ledc_set_color(led_color_struct_t color);
 
-/// @brief fade the color with particular timer 
-/// @param color 
-/// @param time 
-static void ledc_fade_color(led_color_struct_t color,size_t time);
+/// @brief fade the color with particular timer
+/// @param color
+/// @param time
+static void ledc_fade_color(led_color_struct_t color, size_t time);
 
 // --------------------------- led task will run on core 1---------------------------------------------
 
@@ -227,6 +227,8 @@ void led_driver_init(void)
     ledc_cb_register(LEDC_MODE, RED_COLOR_CHANNEL, &callback, NULL);
     ledc_cb_register(LEDC_MODE, GREEN_COLOR_CHANNEL, &callback, NULL);
     ledc_cb_register(LEDC_MODE, BLUE_COLOR_CHANNEL, &callback, NULL);
+
+    curr_state.current_state = LEDC_DRV_STATE_IDLE;
 }
 
 /// @brief deinit the led driver
@@ -279,8 +281,10 @@ void led_driver_remove_cmpt_callback(void)
 /// @param  void
 void led_driver_stop_all_operations(void)
 {
-    // send notif to stop all things
-    xTaskNotify(ledc_taskhandle, LED_NOTIF_API_ENFORCES, eSetValueWithOverwrite);
+    if (curr_state.current_state != LEDC_DRV_STATE_IDLE)
+    { // send notif to stop all things
+        xTaskNotify(ledc_taskhandle, LED_NOTIF_API_ENFORCES, eSetValueWithOverwrite);
+    }
 }
 
 /// @brief this will wait for the completion of the operations
@@ -308,8 +312,10 @@ esp_err_t led_driver_put_color(led_color_struct_t color, led_time_config_struct_
     // send the command to the q
     xQueueOverwrite(ledc_cmd_q_handle, &drv_cmd);
 
-    // send notif to stop all things
-    xTaskNotify(ledc_taskhandle, LED_NOTIF_API_ENFORCES, eSetValueWithOverwrite);
+    if (curr_state.current_state != LEDC_DRV_STATE_IDLE)
+    { // send notif to stop all things
+        xTaskNotify(ledc_taskhandle, LED_NOTIF_API_ENFORCES, eSetValueWithOverwrite);
+    }
 
     return ESP_OK;
 }
@@ -323,9 +329,10 @@ esp_err_t led_driver_no_color(void)
     // send the command to the q
     xQueueOverwrite(ledc_cmd_q_handle, &drv_cmd);
 
-    // send notif to stop all things
-    xTaskNotify(ledc_taskhandle, LED_NOTIF_API_ENFORCES, eSetValueWithOverwrite);
-
+    if (curr_state.current_state != LEDC_DRV_STATE_IDLE)
+    { // send notif to stop all things
+        xTaskNotify(ledc_taskhandle, LED_NOTIF_API_ENFORCES, eSetValueWithOverwrite);
+    }
     return ESP_OK;
 }
 
@@ -348,9 +355,10 @@ esp_err_t led_driver_blink_color(led_color_struct_t color, led_time_config_struc
     // send the command to the q
     xQueueOverwrite(ledc_cmd_q_handle, &drv_cmd);
 
-    // send notif to stop all things
-    xTaskNotify(ledc_taskhandle, LED_NOTIF_API_ENFORCES, eSetValueWithOverwrite);
-
+    if (curr_state.current_state != LEDC_DRV_STATE_IDLE)
+    { // send notif to stop all things
+        xTaskNotify(ledc_taskhandle, LED_NOTIF_API_ENFORCES, eSetValueWithOverwrite);
+    }
     return ESP_OK;
 }
 
@@ -509,7 +517,7 @@ static void ledc_command_handler_task(void* args)
                             ledc_config_timer(GET_ALARM_FROM_MSEC(ledc_cmd.time.fade_out_time));
                         } else // it is in solid state
                         {
-                            ledc_set_color(COLOR(0,0,0));
+                            ledc_set_color(COLOR(0, 0, 0));
                             curr_state.current_state = LEDC_DRV_STATE_OFF;
                             // increment the tick
                             curr_state.current_time += ledc_cmd.time.fade_out_time;
@@ -524,7 +532,7 @@ static void ledc_command_handler_task(void* args)
                         ESP_LOGI(TAG, "fade expires");
 
                         // start to fade up the color
-                        ledc_fade_color(ledc_cmd.color,ledc_cmd.time.fade_in_time);
+                        ledc_fade_color(ledc_cmd.color, ledc_cmd.time.fade_in_time);
                         // now agaon the driver will go into up state
                         curr_state.current_state = LEDC_DRV_STATE_UP;
                         // increment the tick
@@ -534,7 +542,8 @@ static void ledc_command_handler_task(void* args)
                         goto wait_for_notif;
                     }
                 }
-            } break;
+            }
+            break;
             /// end case timer expires
             case LED_NOTIF_FADE_EXPIRES:
             {
@@ -542,8 +551,8 @@ static void ledc_command_handler_task(void* args)
                 if (curr_state.current_state == LEDC_DRV_STATE_UP)
                 {
                     ESP_LOGI(TAG, "fade up expires");
-                    // fade out the color from here 
-                    ledc_fade_color(COLOR(0,0,0),ledc_cmd.time.fade_out_time);
+                    // fade out the color from here
+                    ledc_fade_color(COLOR(0, 0, 0), ledc_cmd.time.fade_out_time);
 
                     curr_state.current_state = LEDC_DRV_STATE_DOWN;
                     curr_state.current_time += ledc_cmd.time.fade_in_time;
@@ -562,8 +571,8 @@ static void ledc_command_handler_task(void* args)
             break;
 
             case LED_NOTIF_API_ENFORCES:
-            {
-
+            {       
+                ESP_LOGW(TAG,"api enf");
                 // here we can't stop the process immediately, go to idle state
                 goto reset_state;
             }
@@ -587,7 +596,7 @@ static void ledc_command_handler_task(void* args)
         {
             task_cmpt_callb(callback_argument);
         }
-        ledc_set_color(COLOR(0,0,0));
+        ledc_set_color(COLOR(0, 0, 0));
         curr_state.current_state = LEDC_DRV_STATE_IDLE;
 
         // inform other task who's waiting for val
@@ -615,11 +624,11 @@ static void ledc_config_timer(size_t timer_alarm)
     gptimer_start(led_timer_handle);
 }
 
-/// @brief set the color on the led 
-/// @param color 
+/// @brief set the color on the led
+/// @param color
 static void ledc_set_color(led_color_struct_t color)
 {
-    // set the color 
+    // set the color
     ledc_set_duty(LEDC_MODE, RED_COLOR_CHANNEL, color.red);
     ledc_set_duty(LEDC_MODE, GREEN_COLOR_CHANNEL, color.green);
     ledc_set_duty(LEDC_MODE, BLUE_COLOR_CHANNEL, color.blue);
@@ -629,13 +638,12 @@ static void ledc_set_color(led_color_struct_t color)
     ledc_update_duty(LEDC_MODE, BLUE_COLOR_CHANNEL);
 }
 
-
-/// @brief fade the color with particular timer 
-/// @param color 
-/// @param time 
-static void ledc_fade_color(led_color_struct_t color,size_t time)
+/// @brief fade the color with particular timer
+/// @param color
+/// @param time
+static void ledc_fade_color(led_color_struct_t color, size_t time)
 {
-    
+
     // again start the fading procedure
     ledc_set_fade_with_time(LEDC_MODE, RED_COLOR_CHANNEL, color.red, time);
     ledc_set_fade_with_time(LEDC_MODE, GREEN_COLOR_CHANNEL, color.green, time);

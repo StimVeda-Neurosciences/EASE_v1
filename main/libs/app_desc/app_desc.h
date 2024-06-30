@@ -19,7 +19,7 @@
 #define VERSION_PATCH(x) (x[4])
 #define VERSION_FIX(x)   (0)
 
-#define APP_NAME_LEN 32
+#define APP_NAME_MAX_LEN 32
 
 /// define the magic number for the app descriptor
 #define APP_DESC_MAGIC_NO 0xA5A5A0UL
@@ -27,8 +27,8 @@
 #define FLASH_EMPTY_U8    UINT8_MAX
 
 /// define the app type
-#define APP_TYPE_DFU_APP  0x20UL
-#define APP_TYPE_EASE_APP 0x10UL
+#define APP_TYPE_DFU_APP  "DFU_APP"
+#define APP_TYPE_EASE_APP "EASE_APP"
 
 #define APP_EXTRA_SIZE (1024) // in bytes 
 
@@ -44,9 +44,9 @@ typedef struct __ESP_APP_CUSTOM_DESCP__
     /// @brief app version
     ota_header_version_t app_ver;
     /// @brief app name is null terminated
-    const char app_name[APP_NAME_LEN];
+    const char app_name[APP_NAME_MAX_LEN];
     // describe the app type, DFU, APP
-    uint8_t app_type;
+    const char app_type[APP_NAME_MAX_LEN];
     uint32_t app_size;
 
     /// @brief app verification state same as app state in ota meta data

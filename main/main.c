@@ -19,25 +19,25 @@
 // ///////////////////////////////////////////////////////////////////////////////////////////////
 // ////////////////////////////////////////////////////////// function prototype
 
-static const char *TAG = "main";
+static const char* TAG = "main";
 
 #define ESP_BATT_CRITICAL_SOC 2
 
-#define IDLE_STATE_WAIT_TIME (1000 * 60 * 1) // 2 minutes
-                                             //////// structure to store the tdcs message content format
+#define IDLE_STATE_WAIT_TIME                                                                                                               \
+    (1000 * 30 * 1) // 2 minutes
+                    //////// structure to store the tdcs message content format
 
 typedef uint32_t (*errors)(void);
 
-static errors bios_functions[4] = {eeg_verify_component,
-                                   tdcs_verify_component, batt_verify_component, flash_op_get_boot_errs};
+static errors bios_functions[4] = {eeg_verify_component, tdcs_verify_component, batt_verify_component, flash_op_get_boot_errs};
 
 ///+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++/////
 ///++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++/////
 /// general task
-void generaltask(void *);
+void generaltask(void*);
 
-#define FX_GEN "gen_task"
-#define general_task_stack_depth 2048
+#define FX_GEN                   "gen_task"
+#define general_task_stack_depth 4096
 
 //// these are the memory and the tcb (task control block ) for the general task
 static StackType_t genral_task_stack_mem[general_task_stack_depth];
@@ -48,16 +48,16 @@ static TaskHandle_t general_tsk_handle = NULL;
 ///+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++/////
 ///++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++/////
 /////////// function that handle the tdcs task
-void function_tdcs_task(void *);
+void function_tdcs_task(void*);
 ////// task name strings
-#define FX_TDCS "func_tdcs"
+#define FX_TDCS               "func_tdcs"
 #define tdcs_task_stack_depth 3072
 
 static TaskHandle_t tdcs_task_handle = NULL;
 
 /////////// function that handle the eeg task
-void function_eeg_task(void *);
-#define FX_EEG "func_eeg"
+void function_eeg_task(void*);
+#define FX_EEG               "func_eeg"
 #define eeg_task_stack_depth 3072
 
 static TaskHandle_t eeg_task_handle = NULL;
@@ -65,10 +65,10 @@ static TaskHandle_t eeg_task_handle = NULL;
 ///+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++/////
 ///++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++/////
 /////////// function to handle idle wait time
-void function_waiting_task(void *);
+void function_waiting_task(void*);
 
 #define idle_wait_task_stack_depth 3072 // 3kb memory
-#define FX_WAITING "idle_wait"
+#define FX_WAITING                 "idle_wait"
 
 static StackType_t waiting_task_stack_mem[idle_wait_task_stack_depth];
 
@@ -142,7 +142,7 @@ void app_main(void)
     waiting_task_handle = xTaskCreateStaticPinnedToCore(function_waiting_task,
                                                         FX_WAITING,
                                                         idle_wait_task_stack_depth,
-                                                        (void *)&device_state,
+                                                        (void*) &device_state,
                                                         PRIORITY_1,
                                                         waiting_task_stack_mem,
                                                         &waiting_task_tcb,
@@ -151,7 +151,8 @@ void app_main(void)
     vTaskSuspend(waiting_task_handle);
 
     // / creating the timer
-    tdcs_timer_handle = xTimerCreateStatic(TDCS_TIMER_NAME, 1, TDCS_TIMER_AUTORELOAD, (void *)0, tdcs_timer_task_Callback, &timer_mem_buffer);
+    tdcs_timer_handle =
+      xTimerCreateStatic(TDCS_TIMER_NAME, 1, TDCS_TIMER_AUTORELOAD, (void*) 0, tdcs_timer_task_Callback, &timer_mem_buffer);
     assert((tdcs_timer_handle != NULL));
 
     ESP_LOGI(TAG, "the free heap memory is %ld", heap_caps_get_free_size(MALLOC_CAP_DEFAULT));
@@ -173,8 +174,7 @@ void app_main(void)
 /// @return succ/faulure
 esp_err_t device_run_bios_test(void)
 {
-    esp_err_t
-        err = eeg_verify_component() + tdcs_verify_component() + batt_verify_component() + flash_op_get_boot_errs();
+    esp_err_t err = eeg_verify_component() + tdcs_verify_component() + batt_verify_component() + flash_op_get_boot_errs();
     if (err != 0)
     {
         ESP_LOGE(TAG, "Bios err %x", err);
@@ -200,7 +200,7 @@ esp_err_t device_get_bios_err(uint32_t arr[], uint8_t num)
     return ESP_OK;
 }
 
-void generaltask(void *param)
+void generaltask(void* param)
 {
     uint32_t notf_val = DEV_STATE_IDLE;
 
@@ -215,113 +215,164 @@ void generaltask(void *param)
 
         switch (device_state)
         {
-        case DEV_STATE_RUN_TDCS:
-        {
-            /// suspend the task
-            vTaskSuspend(waiting_task_handle);
-            ESP_LOGI(TAG, "tdcs_command");
-            ////////// if notification recieve then check the message buffer to get the data .
-            ///// data have a particular format so the opcode, amplitude, freq, etc get extracted from the recv msg
-            if ((tdcs_task_handle == NULL) && (eeg_task_handle == NULL))
+            case DEV_STATE_RUN_TDCS:
             {
-                if (!sys_is_msgbuff_empty())
+                /// suspend the task
+                vTaskSuspend(waiting_task_handle);
+                ESP_LOGI(TAG, "tdcs_command");
+                ////////// if notification recieve then check the message buffer to get the data .
+                ///// data have a particular format so the opcode, amplitude, freq, etc get extracted from the recv msg
+                if ((tdcs_task_handle == NULL) && (eeg_task_handle == NULL))
                 {
-                    /// this local var will not destroy as it is in stack and refer to the same variable
-                    sys_pop_msg_buff(u8_ptr(tdcs_cmd), sizeof(tdcs_cmd));
+                    if (!sys_is_msgbuff_empty())
+                    {
+                        /// this local var will not destroy as it is in stack and refer to the same variable
+                        sys_pop_msg_buff(u8_ptr(tdcs_cmd), sizeof(tdcs_cmd));
 
-                    tdcs_cmd.stop_type = tac_abort;
-                    xTaskCreatePinnedToCore(function_tdcs_task,
-                                            FX_TDCS,
-                                            tdcs_task_stack_depth,
-                                            &tdcs_cmd,
-                                            PRIORITY_3,
-                                            &tdcs_task_handle,
-                                            APP_CPU);
+                        tdcs_cmd.stop_type = tac_abort;
+                        xTaskCreatePinnedToCore(function_tdcs_task,
+                                                FX_TDCS,
+                                                tdcs_task_stack_depth,
+                                                &tdcs_cmd,
+                                                PRIORITY_3,
+                                                &tdcs_task_handle,
+                                                APP_CPU);
+                    }
                 }
             }
-        }
-        break;
-
-        case DEV_STATE_RUN_EEG:
-        {
-            ESP_LOGI(TAG, "eeg command");
-            /// suspend the task
-            vTaskSuspend(waiting_task_handle);
-            if ((tdcs_task_handle == NULL) && (eeg_task_handle == NULL))
-            {
-                if (!sys_is_msgbuff_empty())
-                {
-                    sys_pop_msg_buff(u8_ptr(eeg_cmd), sizeof(eeg_cmd));
-                    xTaskCreatePinnedToCore(function_eeg_task,
-                                            FX_EEG,
-                                            eeg_task_stack_depth,
-                                            &eeg_cmd,
-                                            PRIORITY_3,
-                                            &eeg_task_handle,
-                                            APP_CPU);
-                }
-            }
-        }
-        break;
-        case DEV_STATE_STOP:
-        {
-
-            if (tdcs_task_handle != NULL)
-            {
-                //// check that what the status buffer have
-                tdcs_cmd_struct_t temp = {0};
-                if (!sys_is_msgbuff_empty())
-                {
-                    sys_pop_msg_buff(u8_ptr(temp), sizeof(temp));
-                }
-                tdcs_cmd.stop_type = temp.opcode;
-            }
-
-            ////////// clear the message buffer
-
-            ////// send the status code that 0 is idle
-            // send_stats_code(status_idle);
-            // esp_ble_send_status_indication(status_idle);
-            ESP_LOGW(TAG, "stop command");
-
-            // //// resume the waiting task
-            // vTaskResume(waiting_task_handle);
-        }
-        break;
-        case DEV_STATE_BLE_DISCONNECTED:
-        {
-            led_driver_blink_color(YELLOW_COLOR, BLINK_TIME_BOTH(200, 500, IDLE_STATE_WAIT_TIME));
-            ESP_LOGW(TAG, "Device disconnected ");
-            //// function automatically destroy themselves
-            tdcs_cmd.stop_type = tac_abort;
-        }
-        break;
-        case DEV_STATE_BLE_CONNECTED:
-        {
-            led_driver_put_color(GREEN_COLOR, COLOR_TIME_MAX);
-            ESP_LOGW(TAG, "Device connected ");
-            sys_send_err_code(device_run_bios_test());
-            sys_send_stats_code(STATUS_IDLE);
-            // ///// check if the backgroud process  are done or not
-            // set the ble error code
-            err_code = 0;
-        }
-        break;
-        case DEV_STATE_BLE_READY:
-        {
-            // ble adpater only ready after device restart , so start the wainting task for advertisement
-            vTaskResume(waiting_task_handle);
-            led_driver_blink_color(YELLOW_COLOR, BLINK_TIME_BOTH(200, 500, IDLE_STATE_WAIT_TIME));
-            ESP_LOGW(TAG, "Device BLE ready ");
-            device_state = DEV_STATE_BLE_DISCONNECTED;
-            //// function automatically destroy themselves
-            tdcs_cmd.stop_type = tac_abort;
-            err_code = 0;
-        }
-        break;
-
-        default:
             break;
+
+            case DEV_STATE_RUN_EEG:
+            {
+                ESP_LOGI(TAG, "eeg command");
+                /// suspend the task
+                vTaskSuspend(waiting_task_handle);
+                if ((tdcs_task_handle == NULL) && (eeg_task_handle == NULL))
+                {
+                    if (!sys_is_msgbuff_empty())
+                    {
+                        sys_pop_msg_buff(u8_ptr(eeg_cmd), sizeof(eeg_cmd));
+                        xTaskCreatePinnedToCore(function_eeg_task,
+                                                FX_EEG,
+                                                eeg_task_stack_depth,
+                                                &eeg_cmd,
+                                                PRIORITY_3,
+                                                &eeg_task_handle,
+                                                APP_CPU);
+                    }
+                }
+            }
+            break;
+            case DEV_STATE_STOP:
+            {
+
+                if (tdcs_task_handle != NULL)
+                {
+                    //// check that what the status buffer have
+                    tdcs_cmd_struct_t temp = {0};
+                    if (!sys_is_msgbuff_empty())
+                    {
+                        sys_pop_msg_buff(u8_ptr(temp), sizeof(temp));
+                    }
+                    tdcs_cmd.stop_type = temp.opcode;
+                }
+
+                ////////// clear the message buffer
+
+                ////// send the status code that 0 is idle
+                // send_stats_code(status_idle);
+                // esp_ble_send_status_indication(status_idle);
+                ESP_LOGW(TAG, "stop command");
+
+                // //// resume the waiting task
+                // vTaskResume(waiting_task_handle);
+            }
+            break;
+            case DEV_STATE_BLE_DISCONNECTED:
+            {
+                ESP_LOGW(TAG, "Device disconnected ");
+                //// function automatically destroy themselves
+                tdcs_cmd.stop_type = tac_abort;
+            }
+            break;
+            case DEV_STATE_BLE_CONNECTED:
+            {
+                ESP_LOGW(TAG, "Device connected ");
+                sys_send_err_code(device_run_bios_test());
+                sys_send_stats_code(STATUS_IDLE);
+                // ///// check if the backgroud process  are done or not
+                // set the ble error code
+                err_code = 0;
+            }
+            break;
+            case DEV_STATE_BLE_READY:
+            {
+                // ble adpater only ready after device restart , so start the wainting task for advertisement
+                vTaskResume(waiting_task_handle);
+                ESP_LOGW(TAG, "Device BLE ready ");
+                device_state = DEV_STATE_BLE_DISCONNECTED;
+                //// function automatically destroy themselves
+                tdcs_cmd.stop_type = tac_abort;
+                err_code = 0;
+            }
+            break;
+
+            case DEV_STATE_SWITCH_OTA:
+            {
+                if ((tdcs_task_handle == NULL) && (eeg_task_handle == NULL))
+                {
+                    // check if any other task is running or not
+                    esp_err_t err = flash_op_switch_to_dfu();
+                    if (err != ESP_OK)
+                    {
+                        esp_ble_send_err_indication(err);
+                    } else
+                    {
+                        esp_ble_send_status_indication(STATUS_OTA);
+                        sys_send_stats_code(STATUS_OTA);
+                    }
+                } else
+                {
+                    delay(20);
+                    esp_ble_send_err_indication(ERR_SYS_INVALID_STATE);
+                    sys_send_err_code(ERR_SYS_INVALID_STATE);
+                }
+            }
+            break;
+
+            case DEV_STATE_RESTART:
+            {
+                // we cannot restart in the middle of a protocol
+                if ((tdcs_task_handle == NULL) && (eeg_task_handle == NULL))
+                {
+                    delay(100);
+                    ESP_LOGW(TAG, "restarting device");
+                    system_restart();
+                } else
+                {
+                    esp_ble_send_err_indication(ERR_SYS_INVALID_STATE);
+                    sys_send_err_code(ERR_SYS_INVALID_STATE);
+                }
+            }
+            break;
+
+            case DEV_STATE_SHUTDOWN:
+            {
+                // we cannot restart in the middle of a protocol
+                if ((tdcs_task_handle == NULL) && (eeg_task_handle == NULL))
+                {
+                    ESP_LOGW(TAG, "shuting down system");
+                    system_shutdown();
+                } else
+                {
+                    esp_ble_send_err_indication(ERR_SYS_INVALID_STATE);
+                    sys_send_err_code(ERR_SYS_INVALID_STATE);
+                }
+            }
+            break;
+
+            default:
+                break;
         }
         sys_reset_msg_buffer();
         // notf_val = IDLE;
@@ -335,19 +386,21 @@ void generaltask(void *param)
 
 ///////////////// waiting task for ble to be connected
 
-void function_waiting_task(void *param)
+void function_waiting_task(void* param)
 {
 
     uint16_t blink_time = 0; /// blink time in  milliseconds
 
     uint64_t prev_milli = millis();
 
-    uint8_t *dev_state = param;
+    uint8_t* dev_state = param;
 
-
+    goto device_adv_state;
     ///// @brief device is connected and in idle state
 device_ideal_state:
+    led_driver_put_color(GREEN_COLOR, COLOR_TIME_MAX);
     prev_milli = millis();
+
     for (;;)
     {
         if (*dev_state == DEV_STATE_BLE_DISCONNECTED)
@@ -395,6 +448,7 @@ device_ideal_state:
 
 device_adv_state:
 
+    delay(100);
     sys_reset_msg_buffer();
     sys_reset_status_q();
     sys_reset_err_q();
@@ -402,8 +456,7 @@ device_adv_state:
     /// start the advertisement
     //// it is assumed that the device must be in the ideal state before entering here
     ble_start_advertise();
-
-    ESP_LOGW(TAG, "advertising device");
+    led_driver_blink_color(YELLOW_COLOR, BLINK_TIME_BOTH(200, 500, IDLE_STATE_WAIT_TIME));
     prev_milli = millis();
     for (;;)
     {
@@ -423,8 +476,7 @@ device_adv_state:
                 blink_time = 10;
                 goto dev_terminate;
             }
-        }
-        else
+        } else
         {
             goto device_ideal_state;
         }
@@ -432,13 +484,12 @@ device_adv_state:
 
 dev_terminate:
 
-    delay(400);
     ble_stop_advertise();
     ble_disconnect_device();
     ESP_LOGW(TAG, "going to shut down");
 
     led_driver_blink_color(RED_COLOR, BLINK_TIME_BOTH(200, 400, blink_time * 1000));
-    led_driver_wait_for_completion(blink_time * 1000);
+    delay(blink_time * 1000);
     //// ultimatley call system shutdown
     system_shutdown();
 }
@@ -449,49 +500,49 @@ void tdcs_timer_task_Callback(TimerHandle_t time_handle)
 {
 
     /// use the paramter for the tdcs protocol
-    tdcs_cmd_struct_t *tdcs_cmd = (tdcs_cmd_struct_t *)pvTimerGetTimerID(time_handle);
+    tdcs_cmd_struct_t* tdcs_cmd = (tdcs_cmd_struct_t*) pvTimerGetTimerID(time_handle);
 
     switch (tdcs_cmd->opcode)
     {
-    case tac_sine_wave:
+        case tac_sine_wave:
 
-        sine_wave();
-        break;
+            sine_wave();
+            break;
 
-    case tac_ramp_fun_uni:
-        ramp_fun_uni();
-        break;
+        case tac_ramp_fun_uni:
+            ramp_fun_uni();
+            break;
 
-    case tac_ramp_fun_bi:
-        ramp_fun_bi();
-        break;
+        case tac_ramp_fun_bi:
+            ramp_fun_bi();
+            break;
 
-    case tac_square_bi:
-        square_bi();
-        break;
+        case tac_square_bi:
+            square_bi();
+            break;
 
-    case tac_square_uni:
-        square_uni();
-        break;
+        case tac_square_uni:
+            square_uni();
+            break;
 
-    case tac_set_current:
-        // set_Current(tdcs_data->amplitude);
-        break;
+        case tac_set_current:
+            // set_Current(tdcs_data->amplitude);
+            break;
 
-    case tac_tdcs_prot:
-        run_tdcs();
-        break;
+        case tac_tdcs_prot:
+            run_tdcs();
+            break;
 
-    default:
-        break;
+        default:
+            break;
     }
 }
 
 /// @brief ////////// function to handle the tdcs process
 /// @param param funct_tdcs_data type that is given  by system task
-void function_tdcs_task(void *param)
+void function_tdcs_task(void* param)
 {
-    tdcs_cmd_struct_t *tdcs_cmd = param;
+    tdcs_cmd_struct_t* tdcs_cmd = param;
     /// convert the time into milliseconds
     tdcs_cmd->time_till_run *= 1000;
 
@@ -547,8 +598,7 @@ void function_tdcs_task(void *param)
                     abort_tdcs();
                     do_once = false;
                 }
-            }
-            else
+            } else
             {
                 goto return_mech;
             }
@@ -574,8 +624,8 @@ void function_tdcs_task(void *param)
         }
 
         /// check that is tdcs time is over
-        if (((millis() - prev_mili_run) > ((tdcs_cmd->opcode == tac_tdcs_prot) ? (tdcs_cmd->time_till_run + (2 * tdcs_cmd->frequency))
-                                                                               : (tdcs_cmd->time_till_run))) ||
+        if (((millis() - prev_mili_run) >
+             ((tdcs_cmd->opcode == tac_tdcs_prot) ? (tdcs_cmd->time_till_run + (2 * tdcs_cmd->frequency)) : (tdcs_cmd->time_till_run))) ||
             is_tdcs_complete())
         {
             color = GREEN_COLOR;
@@ -614,9 +664,9 @@ return_mech:
 /// @brief function eeg task
 
 /// @param param
-void function_eeg_task(void *param)
+void function_eeg_task(void* param)
 {
-    eeg_cmd_struct_t *eeg_cmd = param;
+    eeg_cmd_struct_t* eeg_cmd = param;
 
     ESP_LOGI(TAG, "rate %d,time till run%d\r\n", eeg_cmd->rate, eeg_cmd->timetill_run);
     uint8_t err = 0;
@@ -638,7 +688,8 @@ void function_eeg_task(void *param)
     }
 
     eeg_data_q_handle = eeg_start_reading(((eeg_cmd->rate > 16) ? (eeg_cmd->rate - 16) : (eeg_cmd->rate)),
-                                          ((eeg_cmd->rate > 16) ? READING_EEG_WITH_IMP : READING_EEG_ONLY), eeg_task_handle);
+                                          ((eeg_cmd->rate > 16) ? READING_EEG_WITH_IMP : READING_EEG_ONLY),
+                                          eeg_task_handle);
 
     eeg_cmd->rate = (eeg_cmd->rate > 16) ? (eeg_cmd->rate - 16) : (eeg_cmd->rate);
 
@@ -712,8 +763,7 @@ void function_eeg_task(void *param)
             {
                 //// reset the interrupt trigger
                 drdy_int_trg = 0;
-            }
-            else
+            } else
             {
                 color = RED_COLOR;
                 ESP_LOGE(TAG, "protocol running stopped due to drdy error");
