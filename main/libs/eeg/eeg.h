@@ -77,3 +77,7 @@ typedef struct __EEG_CMD_STRUCTURE__
 #define GET_NO_OF_SAMPLES(time,rate) (time/rate)
 
 #define EEG_DATA_SENDING_TIME 40 // 40 millisecond 
+
+
+// wait for 2 seconds if no data comes , then error 
+#define EEG_NOTIF_WAIT_TIME 2000 
