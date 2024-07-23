@@ -456,7 +456,7 @@ device_adv_state:
     /// start the advertisement
     //// it is assumed that the device must be in the ideal state before entering here
     ble_start_advertise();
-    led_driver_blink_color(YELLOW_COLOR, BLINK_TIME_BOTH(200, 500, IDLE_STATE_WAIT_TIME));
+    led_driver_blink_color(YELLOW_COLOR, BLINK_TIME_BOTH(500, 500, IDLE_STATE_WAIT_TIME));
     prev_milli = millis();
     for (;;)
     {
@@ -703,14 +703,15 @@ void function_eeg_task(void* param)
     uint64_t prev_milli_for_drdy = millis();
 
     /// this variable keeps track of the is drdy int arrives or not
-    uint8_t drdy_int_trg = 0;
+    bool drdy_int_trg = 0;
     // uint64_t prev_milli_for_chg = millis();
     //////////// put the colo
 
     uint64_t no_of_samp = 0;
     uint64_t act_no_of_samp;
-    ///// we are sending the data at every 40 msec
-    act_no_of_samp = eeg_cmd->timetill_run / GET_NO_OF_SAMPLES(EEG_DATA_SENDING_TIME, eeg_cmd->rate);
+
+    // calculate the actual no of samples 
+    act_no_of_samp = eeg_cmd->timetill_run / eeg_cmd->rate;
 
     led_driver_put_color(PURPLE_COLOR, COLOR_TIME_MAX);
 
