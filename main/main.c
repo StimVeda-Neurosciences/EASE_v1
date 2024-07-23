@@ -93,7 +93,7 @@ static TimerHandle_t tdcs_timer_handle = NULL;
 void tdcs_timer_task_Callback(TimerHandle_t);
 
 //// time for scanning that the drdry int arrives or not
-#define DRDY_INT_SCAN_TIME 3000
+#define DRDY_INT_SCAN_TIME 4000
 //////////////////////only use this if you want to test something
 
 ////////////////////////////////////////////////////////////////////////
@@ -767,8 +767,8 @@ void function_eeg_task(void* param)
             {
                 color = RED_COLOR;
                 ESP_LOGE(TAG, "protocol running stopped due to drdy error");
-                sys_send_err_code(ERR_EEG_HARDWARE_FAULT);
-                err_code = ERR_EEG_HARDWARE_FAULT;
+                sys_send_err_code(ERR_EEG_SYSTEM_FAULT);
+                err_code = ERR_EEG_SYSTEM_FAULT;
                 goto return_mech;
             }
             //// track back the millis()
@@ -797,7 +797,7 @@ return_mech:
     //////// reset the message buffer
     eeg_stop_reading();
     led_driver_put_color(color, COLOR_TIME_MAX);
-
+    delay(10);
     sys_send_stats_code(STATUS_IDLE);
     send_idle_state = true;
 

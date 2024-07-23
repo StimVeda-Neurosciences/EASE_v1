@@ -17,7 +17,7 @@
 static TaskHandle_t  eeg_taskhandle = NULL;
 
 
-#define EEG_DATA_Q_LEN   (2 * 20)    /// 2 * times the size of max data that can be sent via ble  
+#define EEG_DATA_Q_LEN   (4 * 20)    /// 2 * times the size of max data that can be sent via ble  
 
 static uint8_t eeg_data_q_stoarge_space[ EEG_DATA_Q_LEN * EEG_DATA_SAMPLE_LEN];
 static StaticQueue_t eeg_q_buffer;
@@ -267,6 +267,7 @@ uint32_t eeg_verify_component(void)
     ads_cmd(_WAKEUP);
     eeg_reset_ic(soft_reset);
 
+    delay(200);
     // get device id
     if (get_DeviceID() != ADS_DEVICE_ID)
     {
@@ -291,10 +292,10 @@ void  * eeg_start_reading(uint8_t rate, uint8_t reading_type, void * task_handle
 {
     /// @brief ///// enable the ads module
     gpio_set_level(PIN_EEG_IC_EN, 1);
-    delay(100);
+    delay(200);
     ads_cmd(_WAKEUP);
     eeg_reset_ic(soft_reset);
-    delay(100);
+    delay(200);
 
     //////////// set the ads data rate
     if (rate == 2)

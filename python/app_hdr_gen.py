@@ -259,8 +259,8 @@ def write_and_read_image_hash(image_len):
 
 
 app_data_json = {"Hardware ver": "234SD" ,
-    "Serial num": "35861206023","Firmware ver": "V1.2.2",
-    "Device num": "XXXXXX", "Manuf. name": "Marbles.Health"}
+    "Serial num": "3we61206023","Firmware ver": "V3.2.4",
+    "Device num": "Xwe52XX", "Manuf. name": "Marbles.Health"}
 
 
 

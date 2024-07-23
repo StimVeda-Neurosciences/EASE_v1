@@ -571,8 +571,8 @@ static void ledc_command_handler_task(void* args)
             break;
 
             case LED_NOTIF_API_ENFORCES:
-            {       
-                ESP_LOGW(TAG,"api enf");
+            {
+                ESP_LOGW(TAG, "api enf");
                 // here we can't stop the process immediately, go to idle state
                 goto reset_state;
             }
