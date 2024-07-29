@@ -1,0 +1,117 @@
+---
+Checks: - 'bugprone-*',
+  - 'cert-*',
+  - 'cppcoreguidelines-*',
+  - 'hicpp-*',
+  - 'misc-*',
+  - 'modernize-*',
+  - 'performance-*',
+  - 'portability-*',
+  - 'readability-*',
+  - 'fuchsia-trailing-return',
+  - 'cert-err58-cpp',
+  - 'cert-err60-cpp',
+  - 'cppcoreguidelines-prefer-member-initializer',
+  - 'cppcoreguidelines-pro-bounds-array-to-pointer-decay',
+  - 'cppcoreguidelines-pro-bounds-constant-array-index',
+  - 'cppcoreguidelines-pro-type-static-cast-downcast',
+  - 'cppcoreguidelines-pro-type-union-access',
+  - 'cppcoreguidelines-pro-type-cstyle-cast',
+  - 'cppcoreguidelines-pro-type-vararg',
+  - 'cppcoreguidelines-avoid-magic-numbers',
+  - 'cppcoreguidelines-avoid-non-const-global-variables',
+  - 'cppcoreguidelines-avoid-c-arrays',
+  - 'cppcoreguidelines-special-member-functions',
+  - 'hicpp-avoid-c-arrays',
+  - 'hicpp-uppercase-literal-suffix',
+  - 'hicpp-vararg',
+  - 'hicpp-no-assembler',
+  - 'hicpp-no-array-decay',
+  - 'hicpp-signed-bitwise',
+  - 'hicpp-special-member-functions',
+  - 'modernize-use-trailing-return-type',
+  - 'modernize-avoid-c-arrays',
+  - 'readability-magic-numbers',
+  - 'readability-uppercase-literal-suffix'
+cd main
+
+CheckOptions:
+  - key: readability-function-cognitive-complexity.Threshold
+    value: 100  // Adjust the threshold value as needed
+... 
+
+# Checks: '*'
+# WarningsAsErrors: ''
+# HeaderFilterRegex: ''
+# AnalyzeTemporaryDtors: false
+# User: 
+#   CheckOptions:
+#     - key: readability-identifier-naming.NamespaceCase
+#       value: CamelCase
+#     - key: readability-identifier-naming.ClassCase
+#       value: CamelCase
+#     - key: readability-identifier-naming.StructCase
+#       value: CamelCase
+#     - key: readability-identifier-naming.EnumCase
+#       value: CamelCase
+#     - key: readability-identifier-naming.FunctionCase
+#       value: CamelCase
+#     - key: readability-identifier-naming.VariableCase
+#       value: CamelCase
+#     - key: readability-identifier-naming.MemberCase
+#       value: CamelCase
+#     - key: readability-identifier-naming.ParameterCase
+#       value: CamelCase
+#     - key: readability-identifier-naming.GlobalCase
+#       value: CamelCase
+#     - key: readability-identifier-naming.LocalCase
+#       value: CamelCase
+#     - key: readability-identifier-naming.ConstantCase
+#       value: UPPER_CASE
+#     - key: readability-identifier-naming.OperatorCase
+#       value: CamelCase
+#     - key: readability-identifier-naming.MemberConstantCase
+#       value: UPPER_CASE
+#     - key: readability-identifier-naming.MemberFunctionCase
+#       value: CamelCase
+#     - key: readability-identifier-naming.MemberVariableCase
+#       value: CamelCase
+#     - key: readability-identifier-naming.ExpectedCase
+#       value: CamelCase
+#     - key: readability-identifier-naming.OutcomeTypeCase
+#       value: CamelCase
+#     - key: readability-identifier-naming.GenericFunctionCase
+#       value: CamelCase
+#     - key: readability-identifier-naming.GenericTypeCase
+#       value: CamelCase
+#     - key: readability-identifier-naming.GenericVariableCase
+#       value: CamelCase
+#     - key: readability-identifier-naming.GlobalConstantCase
+#       value: UPPER_CASE
+#     - key: readability-identifier-naming.IncludeStyle.IncludeCategories
+#       value: '^[a-z]+$'
+#     - key: readability-identifier-naming.IncludeStyle.ShortInclude
+#       value: '^<.*\.h>$'
+#     - key: readability-identifier-naming.IncludeStyle.IncludeIsMainRegex
+#       value: '(Test)?$'
+#     - key: readability-identifier-naming.IncludeStyle.Prefix
+#       value: 'my_project_prefix_'
+#     - key: readability-identifier-naming.IncludeStyle.Suffix
+#       value: '_SUFFIX'
+#     - key: readability-identifier-naming.IncludeStyle.MacroCase
+#       value: UPPER_CASE
+#     - key: readability-identifier-naming.IncludeStyle.IncludeBlocks
+#       value: '[a-z]*'
+#     - key: readability-identifier-naming.IncludeStyle.IncludeIsMainRegex
+#       value: '(Main)?$'
+#     - key: readability-identifier-naming.IncludeStyle.FixNamespaceComments
+#       value: 'true'
+#     - key: readability-identifier-naming.IncludeStyle.FixNamespaceCommentsRegex
+#       value: '^//\s*(anonymous\snamespace\s*)?'
+#     - key: readability-identifier-naming.IncludeStyle.IncludeCategories
+#       value: '^[a-z]+$'
+#     - key: readability-identifier-naming.IncludeStyle.IgnoreRegexp
+#       value: ''
+#     - key: readability-identifier-naming.IncludeStyle.MainOnce
+#       value: 'true'
+# ...

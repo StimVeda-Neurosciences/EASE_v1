@@ -1,0 +1,8 @@
+# my custom partiton table 
+# size is 1k for  0x1000
+
+# Name,    Type,   SubType,  Offset,   Size,  Flags
+nvs,       data,   nvs,      0x9000,  0x4000
+meta_data,  data,  fat,    0xd000,    2K
+phy_init,  data,   phy,      0xf000,  0x1000
+factory,   app,    factory,  0x10000,  2M

@@ -1,1 +1,6 @@
-/build/
+
+/pythonapp/__pycache__/
+
+/pythonapp/data/
+
+Ease_firmware/build
