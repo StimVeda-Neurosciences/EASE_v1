@@ -597,7 +597,7 @@ void function_eeg_task(void* param)
     {
         send_err_code(err);
         err_code = err;
-        put_color(RED_COLOR);
+        device_color = RED_COLOR;
         goto return_mech;
     }
     //// send the status that eeg runs
