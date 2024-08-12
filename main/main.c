@@ -1,4 +1,7 @@
+#include "string.h"
+
 #include "system_attr.h"
+
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -687,8 +690,7 @@ void function_eeg_task(void* param)
     }
 
     eeg_data_q_handle = eeg_start_reading(((eeg_cmd->rate > 16) ? (eeg_cmd->rate - 16) : (eeg_cmd->rate)),
-                                          ((eeg_cmd->rate > 16) ? READING_EEG_WITH_IMP : READING_EEG_ONLY),
-                                          eeg_task_handle);
+                                          ((eeg_cmd->rate > 16) ? READING_EEG_WITH_IMP : READING_EEG_ONLY));
 
     eeg_cmd->rate = (eeg_cmd->rate > 16) ? (eeg_cmd->rate - 16) : (eeg_cmd->rate);
 
@@ -704,7 +706,7 @@ void function_eeg_task(void* param)
     uint64_t act_no_of_samp;
 
     // calculate the actual no of samples
-    act_no_of_samp = eeg_cmd->timetill_run / eeg_cmd->rate;
+    act_no_of_samp = eeg_cmd->timetill_run / EEG_DATA_SENDING_TIME;
 
     led_driver_put_color(PURPLE_COLOR, COLOR_TIME_MAX);
 
@@ -713,25 +715,36 @@ void function_eeg_task(void* param)
         // only send the required number of samples
         if (act_no_of_samp > no_of_samp)
         {
-            //    waiting for task notification
-            if (xTaskNotifyWait(0, 0xff, NULL, pdMS_TO_TICKS(EEG_NOTIF_WAIT_TIME)) != pdPASS)
-            {
-                color = RED_COLOR;
-                ESP_LOGE(TAG, "protocol running stopped due to drdy error");
-                sys_send_err_code(ERR_EEG_SYSTEM_FAULT);
-                err_code = ERR_EEG_SYSTEM_FAULT;
-                goto return_mech;
-            } else
+            if(uxQueueMessagesWaiting(eeg_data_q_handle) >= GET_NO_OF_SAMPLES(EEG_DATA_SENDING_TIME, eeg_cmd->rate))
             {
                 uint8_t data_buff[GET_NO_OF_SAMPLES(EEG_DATA_SENDING_TIME, eeg_cmd->rate)][EEG_DATA_SAMPLE_LEN];
-
                 // get all data in burst and send it
                 for (int i = 0; i < GET_NO_OF_SAMPLES(EEG_DATA_SENDING_TIME, eeg_cmd->rate); i++)
                 {
-                    xQueueReceive(eeg_data_q_handle, &data_buff[i][0], 0);
+                    xQueueReceive(eeg_data_q_handle, data_buff[i], 10);
                 }
                 esp_ble_send_notif_eeg(data_buff, sizeof(data_buff));
-                no_of_samp += GET_NO_OF_SAMPLES(EEG_DATA_SENDING_TIME, eeg_cmd->rate);
+                no_of_samp ++;
+            }
+            else
+            {
+                // spend time in delay 
+                delay(20);
+            //     wait_time +=40;
+                
+            //     if(wait_time > EEG_NOTIF_WAIT_TIME)
+            //     {
+            //         // check if data present in the q 
+            //         if(uxQueueMessagesWaiting(eeg_data_q_handle) <= 1)
+            //         {
+            //             color = RED_COLOR;
+            //             ESP_LOGE(TAG, "protocol running stopped due to drdy error");
+            //             sys_send_err_code(ERR_EEG_SYSTEM_FAULT);
+            //             err_code = ERR_EEG_SYSTEM_FAULT;
+            //             goto return_mech;
+            //         }
+            //         wait_time =0;
+            //     }
             }
         }
         else 

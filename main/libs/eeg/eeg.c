@@ -6,6 +6,8 @@
 ////////////////////////// driver file for spi and gpio
 #include "driver/spi_master.h"
 #include "driver/spi_common.h"
+
+
 #include "driver/gpio.h"
 
 #include "freertos/FreeRTOS.h"
@@ -14,11 +16,7 @@
 
 #define TAG "EEG"
 
-static TaskHandle_t eeg_taskhandle = NULL;
-
-static uint8_t global_rate =1;
-
-#define EEG_DATA_Q_LEN (5 * 20) /// 5 * times the size of max data that can be sent via ble
+#define EEG_DATA_Q_LEN (10 * 20) /// 10 * times the size of max data that can be sent via ble
 
 static uint8_t eeg_data_q_stoarge_space[EEG_DATA_Q_LEN * EEG_DATA_SAMPLE_LEN];
 static StaticQueue_t eeg_q_buffer;
@@ -29,6 +27,8 @@ static bool eeg_ic_inited = 0;
 
 ///////////// tdcs spi handle
 static spi_device_handle_t vspi_handle = NULL;
+
+
 
 /// @brief get the device ID
 /// @param  void
@@ -116,35 +116,15 @@ static void IRAM_ATTR gpio_isr_hand(void* param)
 
     xQueueSendFromISR(eeg_q_handle, &rx_buff[3], &high_task_awoken);
 
-    // check messages waiting
-    if (uxQueueMessagesWaitingFromISR(eeg_q_handle) > GET_NO_OF_SAMPLES(EEG_DATA_SENDING_TIME, global_rate))
-    {
-        if (eeg_taskhandle != NULL)
-        {
-            // notify eeg task handle
-            xTaskNotifyFromISR(eeg_taskhandle, 1, eSetValueWithOverwrite, &high_task_awoken);
-        }
-    }
-
     ///////// if a context switch is needed then call this function
-    if (high_task_awoken == pdTRUE)
-    {
-        portYIELD_FROM_ISR();
-    }
+    // if (high_task_awoken == pdTRUE)
+    // {
+    //     portYIELD_FROM_ISR();
+    // }
 }
 
 static void init_ads_pin(void)
 {
-
-    gpio_config_t ads_gpio_cfg = {
-      .mode = GPIO_MODE_OUTPUT,
-      .intr_type = GPIO_INTR_DISABLE,
-      .pin_bit_mask = PIN_EEG_IC_EN,
-      .pull_up_en = 0,
-      .pull_down_en = 0,
-    };
-    // config the das reset pin
-    gpio_config(&ads_gpio_cfg);
 
     /////////////////////init the ads enable pin
     gpio_set_direction(PIN_EEG_IC_EN, GPIO_MODE_OUTPUT);
@@ -213,8 +193,8 @@ static void vspi_init(void)
                                                    .pre_cb = NULL,
                                                    .post_cb = NULL};
 
-    assert(!spi_bus_initialize(VSPI_HOST, &bus_conf, SPI_DMA_DISABLED));
-    assert(!spi_bus_add_device(VSPI_HOST, &bus_interface, &vspi_handle));
+    assert(!spi_bus_initialize(SPI3_HOST, &bus_conf, SPI_DMA_DISABLED));
+    assert(!spi_bus_add_device(SPI3_HOST, &bus_interface, &vspi_handle));
     assert(vspi_handle != NULL);
 }
 
@@ -229,7 +209,7 @@ void eeg_driver_init(void)
     vspi_init();
 
     // init a queue
-    eeg_q_handle = xQueueCreateStatic(EEG_DATA_Q_LEN, EEG_DATA_SAMPLE_LEN, eeg_data_q_stoarge_space, &eeg_q_buffer);
+    eeg_q_handle = xQueueCreateStatic(EEG_DATA_Q_LEN, EEG_DATA_SAMPLE_LEN, &eeg_data_q_stoarge_space, &eeg_q_buffer);
     assert(eeg_q_handle != NULL);
 }
 
@@ -277,10 +257,8 @@ uint32_t eeg_verify_component(void)
 /// @param  rate
 /// @param  reading_type
 /// @param taskhandle
-void* eeg_start_reading(uint8_t rate, uint8_t reading_type, void* task_handle)
+void* eeg_start_reading(uint8_t rate, uint8_t reading_type)
 {
-    // store the global rate 
-    global_rate = rate;
 
     /// @brief ///// enable the ads module
     gpio_set_level(PIN_EEG_IC_EN, 1);
@@ -349,13 +327,12 @@ void* eeg_start_reading(uint8_t rate, uint8_t reading_type, void* task_handle)
     delay(1);
     ads_cmd(_RDATAC); // Start continuous conversion mode
 
-    /////////////// enable the intr
-    gpio_intr_enable(PIN_EEG_DRDY_INTR);
-    eeg_ic_inited = true;
-
-    eeg_taskhandle = task_handle;
     // rest the eeg q
     xQueueReset(eeg_q_handle);
+
+    eeg_ic_inited = true;
+    /////////////// enable the intr
+    gpio_intr_enable(PIN_EEG_DRDY_INTR);
     return eeg_q_handle;
 }
 
@@ -376,8 +353,10 @@ void eeg_stop_reading(void)
     /// @brief ///// disable the ads module
     gpio_set_level(PIN_EEG_IC_EN, 0);
 
-    eeg_taskhandle = NULL;
     eeg_ic_inited = false;
+
+    // reset the Q
+    xQueueReset(eeg_q_handle);
 }
 
 /// @brief read the EEG data from the IC, must be called only after start_reading

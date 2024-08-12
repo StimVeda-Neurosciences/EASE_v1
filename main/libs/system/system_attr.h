@@ -206,7 +206,7 @@ enum __DEVICE_COMMANDS__
 
 // #define ads_ss_pinsel     GPIO_SEL_4
 // #define ads_ddry_pinsel   GPIO_SEL_39
-#define PINSEL_EEG_IC_EN GPIO_SEL_21
+// #define PINSEL_EEG_IC_EN GPIO_SEL_21
 // #define ads_reset_pinsel  GPIO_SEL_22
 /////////// define the ads max transfer size 
 #define PIN_EEG_MAX_BUFF_SIZE   32 //////// in bytes 
