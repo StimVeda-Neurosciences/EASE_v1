@@ -11,6 +11,7 @@ import json
 import hashlib
 import binascii
 
+
 RED = '\033[91m'
 GREEN = '\033[92m'
 YELLOW = '\033[93m'
@@ -187,8 +188,16 @@ def bin_write_app_desc_custom_data(app_data:dict):
     # Pack the data into binary format
     # packed_data = struct.pack(struct_format, *data)
     # packed_data = packed_data.ljust(100, b'\x00')  # Ensure it's 100 bytes long
-    app_hdr_data = (str(app_data_json) + "\0").encode('utf-8')
-    print(app_hdr_data)
+
+    # create a custom struct to store raw bytes 
+    raw_bytes_format = '>20I'
+    
+    print(app_data)
+    json_str = json.dumps(app_data) 
+    data_bytes = json_str.rstrip('}').encode('utf-8') + ", \"DEVICE NUM\" : ".encode('utf-8') + \
+            struct.pack(raw_bytes_format, *[0xFFFFFFFF] * 20) + '}\0'.encode('utf-8')
+    
+    # app_hdr_data =  (str(app_data) + "\0").encode('utf-8')
      
     # calculated by estmating the size of the image_hdr + segment_hdr + app_descriptor 
     offset = struct.calcsize(ESP_IMAGE_HEADER_STRUCT_FORMAT) +  \
@@ -196,12 +205,12 @@ def bin_write_app_desc_custom_data(app_data:dict):
             struct.calcsize(ESP_APP_DESCRIPTOR_STRUCT_FORMAT) + \
             struct.calcsize(ESP_APP_CUSTOM_DESC_STRUCT_FORMAT)
             
-    print(f"{RED} modifying the header of {in_file} at offset {offset}  and len to write {len(app_hdr_data)} {RESET}")
+    print(f"{RED} modifying the header of {in_file} at offset {offset}  and len to write {len(data_bytes)} {RESET}")
 
     # Write the binary data to a file
     with open(in_file, 'r+b') as f:
         f.seek(offset)
-        f.write(app_hdr_data)
+        f.write(data_bytes)
 
 
 
@@ -258,9 +267,9 @@ def write_and_read_image_hash(image_len):
     
 
 
-app_data_json = {"Hardware ver": "234SD" ,
-    "Serial num": "3we61206023","Firmware ver": "V3.2.4",
-    "Device num": "Xwe52XX", "Manuf. name": "Marbles.Health"}
+app_data_json = {"HARDWARE VER": "234SD" ,
+    "SERIAL NUM": "3we61206023","FIRMWARE VER": "V3.2.4",
+    "MANUF. NAME": "Marbles.Health"}
 
 
 

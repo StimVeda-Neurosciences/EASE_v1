@@ -147,22 +147,22 @@ const char *flash_app_get_info(flash_app_info_index_t index)
     switch (index)
     {
     case flash_app_info_Hardware_num:
-        str_to_srch = "Hardware ver";
+        str_to_srch = "HARDWARE VER";
         break;
     case flash_app_info_serial_num:
-        str_to_srch = "Serial num";
+        str_to_srch = "SERIAL NUM";
         break;
 
     case flash_app_info_firmware_num:
-        str_to_srch = "Firmware ver";
+        str_to_srch =  "FIRMWARE VER";
         break;
 
     case flash_app_info_device_num:
-        str_to_srch = "Device num";
+        str_to_srch = "DEVICE NUM";
         break;
 
     case flash_app_info_app_manuf_name:
-        str_to_srch = "Manuf. name";
+        str_to_srch = "MANUF. NAME";
         break;
 
     case flash_app_info_app_name:
@@ -303,7 +303,7 @@ static void extract_json(const char str[], uint16_t size)
                 }
             }
 
-            if (!startstring)
+            else
             { // search for colon, i.e we can search for the value of the key we just found
                 if (str[i] == ':')
                 {

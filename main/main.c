@@ -105,7 +105,7 @@ static volatile uint8_t device_state = DEV_STATE_BLE_DISCONNECTED;
 
 void app_main(void)
 {
-
+    
     //// initializing all the harware and init functions
     //////// init the system here
     system_init();
@@ -692,7 +692,6 @@ void function_eeg_task(void* param)
 
     eeg_cmd->rate = (eeg_cmd->rate > 16) ? (eeg_cmd->rate - 16) : (eeg_cmd->rate);
 
-    
     ESP_LOGI(TAG, "rate %d,time till run%d\r\n", eeg_cmd->rate, eeg_cmd->timetill_run);
     //// send the status that eeg runs
     sys_send_stats_code(STATUS_EEG_RUN);
@@ -735,60 +734,62 @@ void function_eeg_task(void* param)
                 no_of_samp += GET_NO_OF_SAMPLES(EEG_DATA_SENDING_TIME, eeg_cmd->rate);
             }
         }
-    
+        else 
+        {
+            delay(100);
+        }
 
-    //// check the battery charging here
-    if (batt_get_chg_status() == BATT_CHARGING)
-    {
-        color = RED_COLOR;
-        ESP_LOGE(TAG, "protocol cant be run while charigin");
-        sys_send_err_code(ERR_BATT_CHG_IN_PROTOCOL);
-        err_code = ERR_BATT_CHG_IN_PROTOCOL;
-        goto return_mech;
+        //// check the battery charging here
+        if (batt_get_chg_status() == BATT_CHARGING)
+        {
+            color = RED_COLOR;
+            ESP_LOGE(TAG, "protocol cant be run while charigin");
+            sys_send_err_code(ERR_BATT_CHG_IN_PROTOCOL);
+            err_code = ERR_BATT_CHG_IN_PROTOCOL;
+            goto return_mech;
+        }
+
+        if (batt_get_soc() <= ESP_BATT_CRITICAL_SOC)
+        {
+            color = RED_COLOR;
+            ESP_LOGE(TAG, "battery critically low");
+            sys_send_err_code(ERR_BATT_CRITICAL_LOW);
+            err_code = ERR_BATT_CRITICAL_LOW;
+            goto return_mech;
+        }
+
+        // ////// only make it complete with both the time and no_of sample
+        if (((millis() - prev_milli) >= eeg_cmd->timetill_run) && (act_no_of_samp <= no_of_samp))
+        {
+            color = GREEN_COLOR;
+            goto return_mech;
+        }
+        /// handle device disconnection
+
+        if ((device_state == DEV_STATE_BLE_DISCONNECTED) || (device_state == DEV_STATE_STOP))
+        {
+            color = GREEN_COLOR;
+            goto return_mech;
+        }
     }
 
-    if (batt_get_soc() <= ESP_BATT_CRITICAL_SOC)
-    {
-        color = RED_COLOR;
-        ESP_LOGE(TAG, "battery critically low");
-        sys_send_err_code(ERR_BATT_CRITICAL_LOW);
-        err_code = ERR_BATT_CRITICAL_LOW;
-        goto return_mech;
-    }
-
-    // ////// only make it complete with both the time and no_of sample
-    if (((millis() - prev_milli) >= eeg_cmd->timetill_run) && (act_no_of_samp <= no_of_samp))
-    {
-        color = GREEN_COLOR;
-        goto return_mech;
-    }
-    /// handle device disconnection
-
-    if ((device_state == DEV_STATE_BLE_DISCONNECTED) || (device_state == DEV_STATE_STOP))
-    {
-        color = GREEN_COLOR;
-        goto return_mech;
-    }
-
-}
-
-return_mech :
+return_mech:
 
     // //////// exiting the eeg funcction
     ESP_LOGW(TAG, "eeg_func_destroy");
-//////// reset the message buffer
-eeg_stop_reading();
-led_driver_put_color(color, COLOR_TIME_MAX);
-delay(10);
-sys_send_stats_code(STATUS_IDLE);
-send_idle_state = true;
+    //////// reset the message buffer
+    eeg_stop_reading();
+    led_driver_put_color(color, COLOR_TIME_MAX);
+    delay(10);
+    sys_send_stats_code(STATUS_IDLE);
+    send_idle_state = true;
 
-sys_reset_msg_buffer();
-////////// reseume the waiting task
-vTaskResume(waiting_task_handle);
+    sys_reset_msg_buffer();
+    ////////// reseume the waiting task
+    vTaskResume(waiting_task_handle);
 
-//////////////// making the task handler to null and void
-eeg_task_handle = NULL;
-///////////// delete the task when reach here
-vTaskDelete(NULL);
+    //////////////// making the task handler to null and void
+    eeg_task_handle = NULL;
+    ///////////// delete the task when reach here
+    vTaskDelete(NULL);
 }

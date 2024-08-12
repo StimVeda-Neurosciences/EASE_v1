@@ -7,4 +7,5 @@ if ledc driver stop code is  in  reseting led driver, then it cauese the ledc dr
 <!-- ---this might be hardware issue but not sure  -->
 
 #### ledc driver software issue 
-- the wait_for_completion not work perfectly , have to find a workaround 
+- the wait_for_completion not work perfectly in a fade down sceanario as suppose there are two led on with diffrent duty cycle as 
+20 % and 60 % initailly then in fading the higher duty takes more time or lower duty fade down quickly, have to find a workaround 
