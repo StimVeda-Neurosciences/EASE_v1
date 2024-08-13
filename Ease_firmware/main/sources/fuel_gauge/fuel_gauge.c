@@ -6,7 +6,7 @@ volatile batt_data_struct_t batt_data;
 
 void fuel_gauge_functions_task(void* param);
 
-static xTaskHandle fuelgauge_Taskhandle;
+static TaskHandle_t fuelgauge_Taskhandle;
 
 #define battery_state_change_update_time 500
 
@@ -16,7 +16,7 @@ static void send_fuelgauge(uint8_t addr, uint16_t data) {
   uint8_t writebuf[3] = {addr, (data & 0xFF), ((data >> 8) & 0xFF)};
 
   if (fuel_gauge_check != FUEL_GAUGE_PRESENT)
-    return 0;
+    return ;
 
   i2c_master_write_to_device(I2C_Port, Sens_addr, writebuf, 3, i2c_wait_time);
 }
@@ -38,7 +38,7 @@ static void verify_write_fuel_gauge(uint8_t addr, uint16_t data) {
 
   uint8_t ret_data[2] = {0};
   if (fuel_gauge_check != FUEL_GAUGE_PRESENT)
-    return 0;
+    return ;
 
   if (i2c_master_write_read_device(I2C_Port, Sens_addr, &addr, 1, ret_data, 2, i2c_wait_time) != ESP_OK) {
     return;

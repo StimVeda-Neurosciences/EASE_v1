@@ -30,7 +30,8 @@
 #include "esp_sleep.h"
 
 #include "sdkconfig.h" /// this include all the esp32 settings and configurations that are configure through menuconfig
-#include "esp_spi_flash.h"
+#include "spi_flash_mmap.h"
+
 #include "driver/gpio.h"
 
 
@@ -150,7 +151,7 @@ enum _DEVICE_STATE_
 #define green_led_pin  GPIO_NUM_2
 #define blue_led_pin   GPIO_NUM_15
 
-#define lights_pin (GPIO_SEL_4 | GPIO_SEL_2 | GPIO_SEL_15)
+// #define lights_pin (GPIO_SEL_4 | GPIO_SEL_2 | GPIO_SEL_15)
 
 ////==================== TDCS pins ========================
 #define tdcs_mosi_pin GPIO_NUM_13
@@ -207,7 +208,7 @@ enum
 
 /////////////// task handler definaations 
 // /////////////////////////////////////
-extern xTaskHandle general_tsk_handle;
+extern TaskHandle_t general_tsk_handle;
 
 /////////////////////////////////////////////////////////////////
 ////////////////////// message buffer handlers ////////////////

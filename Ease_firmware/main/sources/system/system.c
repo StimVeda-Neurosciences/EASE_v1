@@ -215,7 +215,7 @@ static void calib_adc(void)
     gpio_set_direction(GPIO_NUM_35, GPIO_MODE_INPUT);
     gpio_set_pull_mode(GPIO_NUM_35, GPIO_FLOATING);
     // Check if Two Point or Vref are burned into eFuse
-    adc_power_acquire();
+    // adc_power_acquire();
     check_efuse();
 
     // Configure ADC
@@ -317,22 +317,22 @@ void system_init(void)
 {
      // install gpio isr service
     gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT);
-      const gpio_config_t leds_cfg =
-    {
-        .intr_type = GPIO_INTR_DISABLE,
-        .mode = GPIO_MODE_OUTPUT,
-        .pin_bit_mask = lights_pin,
-        .pull_down_en =0,
-        .pull_up_en =0,
-    };
+    //   const gpio_config_t leds_cfg =
+    // {
+    //     .intr_type = GPIO_INTR_DISABLE,
+    //     .mode = GPIO_MODE_OUTPUT,
+    //     .pin_bit_mask = lights_pin,
+    //     .pull_down_en =0,
+    //     .pull_up_en =0,
+    // };
 
-    gpio_config(&leds_cfg);
+    // gpio_config(&leds_cfg);
     // @note not use this functions as they are not able to touch IO MUX register 
 
     // /// @brief ////// init the system leds
-    // gpio_set_direction(red_led_pin, GPIO_MODE_OUTPUT);
-    // gpio_set_direction(green_led_pin, GPIO_MODE_OUTPUT);
-    // gpio_set_direction(blue_led_pin, GPIO_MODE_OUTPUT);
+    gpio_set_direction(red_led_pin, GPIO_MODE_OUTPUT);
+    gpio_set_direction(green_led_pin, GPIO_MODE_OUTPUT);
+    gpio_set_direction(blue_led_pin, GPIO_MODE_OUTPUT);
 
     put_color(NO_COLOR);
 

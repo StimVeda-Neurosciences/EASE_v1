@@ -29,7 +29,7 @@ void generaltask(void*);
 static StackType_t genral_task_stack_mem[general_task_stack_depth];
 static StaticTask_t genral_task_tcb;
 
-xTaskHandle general_tsk_handle = NULL;
+TaskHandle_t general_tsk_handle = NULL;
 
 ///+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++/////
 ///++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++/////
@@ -39,14 +39,14 @@ void function_tdcs_task(void*);
 #define FX_TDCS               "func_tdcs"
 #define tdcs_task_stack_depth 2048
 
-static xTaskHandle tdcs_task_handle = NULL;
+static TaskHandle_t tdcs_task_handle = NULL;
 
 /////////// function that handle the eeg task
 void function_eeg_task(void*);
 #define FX_EEG               "func_eeg"
 #define eeg_task_stack_depth 2048
 
-static xTaskHandle eeg_task_handle = NULL;
+static TaskHandle_t eeg_task_handle = NULL;
 
 ///+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++/////
 ///++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++/////
@@ -60,13 +60,13 @@ static StackType_t waiting_task_stack_mem[idle_wait_task_stack_depth];
 
 static StaticTask_t waiting_task_tcb;
 
-static xTaskHandle waiting_task_handle = NULL;
+static TaskHandle_t waiting_task_handle = NULL;
 
 ///+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++////
 /// create a timer buffer
 static StaticTimer_t timer_mem_buffer;
 
-static xTimerHandle tdcs_timer_handle = NULL;
+static TimerHandle_t tdcs_timer_handle = NULL;
 
 #define TDCS_TIMER_NAME "TDCS_TIMER"
 
@@ -111,7 +111,7 @@ void app_main(void)
     fuel_gauge_init();
     // fuel init done
 
-    printf("err val %x\r\n", err_code);
+    printf("err val %lx\r\n", err_code);
     /////////init the ble module
     ble_init();
 
@@ -172,7 +172,7 @@ uint32_t device_run_bios_test(void)
     ret = fuel_gauge_verify_process();
     err |= (ret << FUEL_GAUGE_ERR_POSITION);
 
-    printf("bios teset err %x\r\n", err);
+    printf("bios teset err %lx\r\n", err);
     return err;
 }
 
@@ -457,7 +457,7 @@ void function_tdcs_task(void* param)
     /// convert the time into milliseconds
     tdcs_data->time_till_run *= 1000;
 
-    printf("opc %d, amp %d, fre %d,time %d\r\n", tdcs_data->opcode, tdcs_data->amplitude, tdcs_data->frequency, tdcs_data->time_till_run);
+    printf("opc %d, amp %d, fre %ld,time %ld\r\n", tdcs_data->opcode, tdcs_data->amplitude, tdcs_data->frequency, tdcs_data->time_till_run);
 
     tdcs_init(tdcs_data->opcode, tdcs_data->amplitude, tdcs_data->frequency, tdcs_data->time_till_run);
     // read_tdc_reg();
@@ -493,7 +493,7 @@ void function_tdcs_task(void* param)
         err = check_tdcs_protection();
         if (err)
         {
-            printf("tdcs err %d \r\n", err);
+            printf("tdcs err %ld \r\n", err);
             send_err_code(err);
             err_code = err;
             device_color = RED_COLOR;
@@ -578,7 +578,7 @@ void function_eeg_task(void* param)
 {
     func_eeg_task* eeg_data = param;
 
-    printf("rate %d,time till run%d\r\n", eeg_data->rate, eeg_data->timetill_run);
+    printf("rate %d,time till run%ld\r\n", eeg_data->rate, eeg_data->timetill_run);
     uint8_t err = 0;
     // convert the time in milliseconds
     eeg_data->timetill_run *= 1000;

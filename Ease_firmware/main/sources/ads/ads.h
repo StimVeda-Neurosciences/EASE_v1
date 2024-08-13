@@ -143,7 +143,7 @@ void inline  data_to_int(uint8_t *buff);
 extern void error_hand(void);
 
 //////// the ads queue handle 
-extern xQueueHandle ads_queue;
+extern QueueHandle_t ads_queue;
 
 
 

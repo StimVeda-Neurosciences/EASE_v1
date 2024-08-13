@@ -19,6 +19,7 @@
 
 /////// esp32 bare metal supportive libs
 #include "esp_system.h"
+
 #include "esp_log.h"
 
 #include "sdkconfig.h" /// this include all the esp32 settings and configurations that are configure through menuconfig

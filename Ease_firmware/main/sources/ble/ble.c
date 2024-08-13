@@ -557,7 +557,7 @@ void gatts_events_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, es
     } break;
     case ESP_GATTS_READ_EVT: {
       ESP_LOGI(GATTS_TAG,
-               "GATT_READ_EVT, gatt_interface  %d, trans_id %d, handle %d\n",
+               "GATT_READ_EVT, gatt_interface  %d, trans_id %ld, handle %d\n",
                gatts_if,
                param->read.trans_id,
                param->read.handle);
@@ -1019,7 +1019,7 @@ void ble_init(void) {
   }
 
   // set the power level for BLE advertisement
-  esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_ADV, ESP_PWR_LVL_N12);
+  // esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_ADV, ESP_PWR_LVL_N12);
 
   ////////// registering app for event handlers
   if (esp_ble_gatts_app_register(PROFILE_DEVICE_INFORMATION) != ESP_OK)
@@ -1040,7 +1040,7 @@ void ble_init(void) {
     ESP_LOGE(GATTS_TAG, "set local  MTU failed, error code = %x\r\n", local_mtu_ret);
   }
 
-  esp_ble_get_device_info_strings();
+  // esp_ble_get_device_info_strings();
   /////// above code id to implement BLE in peripheral mode , create the service , charcteristics , and handling events
 }
 

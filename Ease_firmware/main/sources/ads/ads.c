@@ -4,7 +4,7 @@
 static spi_device_handle_t vspi_handle;
 
 // ///////////////////// generic queue handle
-xQueueHandle ads_queue = NULL;
+QueueHandle_t ads_queue = NULL;
 
 static uint8_t ads_queue_data_buffer[ads_queue_len][ads_item_size];
 
@@ -109,16 +109,16 @@ static void IRAM_ATTR gpio_isr_hand(void)
 static void init_ads_pin(void)
 {
 
-    gpio_config_t ads_gpio_cfg =
-        {
-            .mode = GPIO_MODE_OUTPUT,
-            .intr_type = GPIO_INTR_DISABLE,
-            .pin_bit_mask = ads_enable_pinsel,
-            .pull_up_en = 0,
-            .pull_down_en = 0,
-        };
-    // config the das reset pin
-    gpio_config(&ads_gpio_cfg);
+    // gpio_config_t ads_gpio_cfg =
+    //     {
+    //         .mode = GPIO_MODE_OUTPUT,
+    //         .intr_type = GPIO_INTR_DISABLE,
+    //         .pin_bit_mask = ads_enable_pinsel,
+    //         .pull_up_en = 0,
+    //         .pull_down_en = 0,
+    //     };
+    // // config the das reset pin
+    // gpio_config(&ads_gpio_cfg);
 
     /////////////////////init the ads enable pin
     gpio_set_direction(ads_enable_pin, GPIO_MODE_OUTPUT);
