@@ -204,6 +204,8 @@ static const esp_gatts_attr_db_t __packed device_info_db_table[DEVICE_INFO_NO_OF
 
 };
 
+
+
 static uint16_t device_info_db_handle[DEVICE_INFO_NO_OF_ELE];
 
 static uint16_t gatt_if_device_info = ESP_GATT_IF_NONE;
