@@ -1,7 +1,7 @@
 #pragma once 
 
 #include <stdio.h>
-#include "sys_attr.h"
+#include "system_attr.h"
 
 
 
@@ -28,7 +28,7 @@ void eeg_driver_deinit(void);
 /// @param  reading_type
 /// @param  eeg_Taskhandle
 /// @return Quehandle 
-void * eeg_start_reading(uint8_t rate, uint8_t reading_type,void * taskahndle  );
+void * eeg_start_reading(uint8_t rate, uint8_t reading_type );
 
 /// @brief stop the ic reading and maybe powerdown the ic 
 /// @param  void 
@@ -43,7 +43,7 @@ void eeg_read_data(uint8_t *buff, uint16_t len);
 /// @brief this is to verify that ads ic is present and working 
 /// @param  void 
 /// @return true /false 
-uint8_t eeg_verify_component(void);
+uint32_t eeg_verify_component(void);
 
 /// @brief reset the EEG ic 
 /// @param reset_type 
@@ -77,3 +77,7 @@ typedef struct __EEG_CMD_STRUCTURE__
 #define GET_NO_OF_SAMPLES(time,rate) (time/rate)
 
 #define EEG_DATA_SENDING_TIME 40 // 40 millisecond 
+
+
+// wait for 2 seconds if no data comes , then error 
+#define EEG_NOTIF_WAIT_TIME 2000 

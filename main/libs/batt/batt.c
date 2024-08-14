@@ -3,7 +3,7 @@
 #include "batt.h"
 #include "batt_regs.h"
 
-#include "sys_attr.h"
+#include "system_attr.h"
 #include "ble.h"
 
 #include"freertos/FreeRTOS.h"
@@ -16,21 +16,22 @@
 
 static volatile batt_data_struct_t batt_data;
 
-
-// ========================= task realted param 
-#define batt_Task_stack_depth 2048
 static const char * TAG = "BATT";
 
-void batt_function_task(void* param);
+// ========================= task realted param 
+#define BATT_TASK_STACK_DEPTH 2048
+#define BATT_TASK_PARAM NULL
+#define BATT_TASK_CPU PRO_CPU
+#define BATT_TASK_NAME "BATT_TASK"
+#define BATT_TASK_PRIORITY PRIORITY_5
 
+void batt_function_task(void* param);
 static TaskHandle_t batt_taskhandle;
 
-#define TASK_NAME "BATT_TASK"
-
-static StackType_t batt_Task_stack_mem[batt_Task_stack_depth];
+static StackType_t batt_Task_stack_mem[BATT_TASK_STACK_DEPTH];
 static StaticTask_t batt_task_tcb;
 
-#define battery_state_change_update_time 500
+#define battery_state_change_update_time 600
 
 
 
@@ -75,6 +76,8 @@ static void verify_write_fuel_gauge(uint8_t addr, uint16_t data) {
 void batt_driver_init(void)
 {
 
+  ESP_LOGW(TAG,"batt drv init");
+  
   i2c_config_t m5_config = {.mode = I2C_MODE_MASTER,
                             .sda_io_num = PIN_BATT_SDA,
                             .scl_io_num = PIN_BATT_SCL,
@@ -141,11 +144,8 @@ void batt_driver_init(void)
 
 return_mech:
   ///////// reserve 1kb space for the fuel gauge task
-  batt_taskhandle =  xTaskCreateStaticPinnedToCore(batt_function_task,TASK_NAME,batt_Task_stack_depth,NULL,PRIORITY_5,batt_Task_stack_mem,&batt_task_tcb,PRO_CPU);
-  if(batt_taskhandle == NULL)
-  {
-    system_restart();
-  }
+  batt_taskhandle =  xTaskCreateStaticPinnedToCore(batt_function_task,BATT_TASK_NAME,BATT_TASK_STACK_DEPTH,BATT_TASK_PARAM,BATT_TASK_PRIORITY,batt_Task_stack_mem,&batt_task_tcb,BATT_TASK_CPU);
+  assert(batt_taskhandle != NULL);
 
 }
 
@@ -270,7 +270,7 @@ uint16_t batt_get_chg_status(void)
 /// @brief this is to verify that fuel gauge is present and working
 /// @param  void
 /// @return succ/errcode
-uint8_t batt_verify_component(void)
+uint32_t batt_verify_component(void)
 {
   //// get the device fuel gauge id
   // read the device id from the 

@@ -1,6 +1,6 @@
 #include "ble.h"
 
-#include "sys_attr.h"
+#include "system_attr.h"
 
 #include "esp_gap_ble_api.h"
 #include "esp_bt_defs.h"
@@ -9,8 +9,6 @@
 #include "esp_gatts_api.h"
 #include "esp_gatt_common_api.h"
 #include "esp_wifi.h"
-
-
 
 static uint8_t char_start_val[1] = {0};
 
@@ -52,6 +50,7 @@ static const uint16_t manufact_name_char = 0x2A29;
 static const uint16_t serial_num_char = 0x2A25;
 static const uint16_t hardware_rev_char = 0x2A27;
 static const uint16_t firmware_rev_char = 0x2A26;
+static const uint16_t device_number_char = 0x2A23;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -71,13 +70,13 @@ const esp_gatts_attr_db_t device_info_db_table[DEVICE_INFO_NO_OF_ELE] =
                                     {ESP_UUID_LEN_16, u8_ptr(character_declaration_uuid), ESP_GATT_PERM_READ, _1byte, _1byte, u8_ptr(char_prop_read)}},
 
         /* Characteristic Value */ // respond by app
-        [MANUFACTURER_NAME_VAL] = {{ESP_GATT_AUTO_RSP},
+        [MANUFACTURER_NAME_VAL] = {{ESP_GATT_RSP_BY_APP},
                                    {ESP_UUID_LEN_16,
                                     u8_ptr(manufact_name_char),
                                     ESP_GATT_PERM_READ,
-                                    sizeof(MANUFACTURER_NAME),
-                                    sizeof(MANUFACTURER_NAME),
-                                    u8_ptr(MANUFACTURER_NAME)}},
+                                    GATT_MAX_ATTR_STRING_LEN,
+                                    _1byte,
+                                    char_start_val}},
 
         /* Characteristic Declaration */
         [SERIAL_NUMBER_CAHR] = {{ESP_GATT_AUTO_RSP},
@@ -100,13 +99,24 @@ const esp_gatts_attr_db_t device_info_db_table[DEVICE_INFO_NO_OF_ELE] =
                                     {ESP_UUID_LEN_16, u8_ptr(character_declaration_uuid), ESP_GATT_PERM_READ, _1byte, _1byte, u8_ptr(char_prop_read)}},
 
         /////////// charcteristic value
-        [FIRMWARE_REVISION_VAL] = {{ESP_GATT_AUTO_RSP},
+        [FIRMWARE_REVISION_VAL] = {{ESP_GATT_RSP_BY_APP},
                                    {ESP_UUID_LEN_16,
                                     u8_ptr(firmware_rev_char),
                                     ESP_GATT_PERM_READ,
                                     MAX_ATTRIBUTE_SIZE,
                                     _1byte,
-                                    char_start_val}}
+                                    char_start_val}},
+
+        [DEVICE_NUMBER_CHAR] = {{ESP_GATT_AUTO_RSP},
+                                {ESP_UUID_LEN_16, u8_ptr(character_declaration_uuid), ESP_GATT_PERM_READ, _1byte, _1byte, u8_ptr(char_prop_read)}},
+
+        [DEVICE_NUMBER_VAL] =     {{ESP_GATT_RSP_BY_APP},
+                                    {ESP_UUID_LEN_16,
+                                    u8_ptr(device_number_char),
+                                    ESP_GATT_PERM_READ,
+                                    MAX_ATTRIBUTE_SIZE,
+                                    _1byte,
+                                    char_start_val}},
 
 };
 
@@ -167,37 +177,6 @@ const esp_gatts_attr_db_t battery_db_table[BATT_NO_OF_ELE] = {
 
 };
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////------------ device firmware update ----------------/////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// static const uint8_t dfu_serv[] = {0x50, 0xea, 0xda, 0x30, 0x88, 0x83, 0xb8, 0x9f, 0x60, 0x4f, 0x15, 0xf3, 0x01, 0x00, 0x40, 0x8e};
-
-// static const uint8_t dfu_char[] = {0x50, 0xea, 0xda, 0x30, 0x88, 0x83, 0xb8, 0x9f, 0x60, 0x4f, 0x15, 0xf3, 0x01, 0x00, 0x40, 0x8e};
-
-// static uint32_t dfu_val = 0;
-// static uint16_t dfu_client_char_config = 0;
-
-// static const esp_gatts_attr_db_t dfu_ota_db[DFU_NO_OF_ELE] = {
-//   // Service Declaration
-//   [DFU_SERVICE] = {{ESP_GATT_AUTO_RSP},
-//                    {ESP_UUID_LEN_16, u8_ptr(primary_service_uuid), ESP_GATT_PERM_READ, sizeof(dfu_serv), sizeof(dfu_serv), dfu_serv}},
-
-//   /* Characteristic Declaration */
-//   [DFU_CHAR] = {{ESP_GATT_AUTO_RSP},
-//                 {ESP_UUID_LEN_16, u8_ptr(character_declaration_uuid), ESP_GATT_PERM_READ, _1byte, _1byte, u8_ptr(char_w_notify)}},
-
-//   /* Characteristic Value */ // respond by app
-//   [DFU_VAL] = {{ESP_GATT_RSP_BY_APP}, {ESP_UUID_LEN_128, dfu_char, ESP_GATT_PERM_READ, DFU_CHAR_MX_SIZE, sizeof(dfu_val), u8_ptr(dfu_val)}},
-//   ///////////////char config for DFU service
-//   [DFU_CHAR_CONFIG] = {{ESP_GATT_AUTO_RSP},
-//                        {ESP_UUID_LEN_16, u8_ptr(client_charcater_config_uuid), Gatt_perm_r_w, _2bytes, _2bytes, u8_ptr(dfu_client_char_config)}}
-
-// };
-
-// static uint16_t dfu_db_handle[DFU_NO_OF_ELE];
-
-// static uint16_t gatt_if_dfu_srv = ESP_GATT_IF_NONE;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////--------------custom service for our job -------------////////////////////////////////////
@@ -278,7 +257,7 @@ const esp_gatts_attr_db_t custom_db_table[CUSTOM_NO_ELE] = {
                          {ESP_UUID_LEN_16, u8_ptr(character_declaration_uuid), ESP_GATT_PERM_READ, _1byte, _1byte, u8_ptr(char_prop_r_w_indicate)}},
 
     /* Characteristic Value */ // respond by app
-    [ERROR_CODE_VAL] = {{ESP_GATT_RSP_BY_APP}, {ESP_UUID_LEN_16, u8_ptr(custom_char5), Gatt_perm_r_w, _10bytes, sizeof(value), u8_ptr(value)}},
+    [ERROR_CODE_VAL] = {{ESP_GATT_RSP_BY_APP}, {ESP_UUID_LEN_16, u8_ptr(custom_char5), Gatt_perm_r_w, custom_char_mx_size, sizeof(value), u8_ptr(value)}},
 
     /* Client Characteristic Configuration Descriptor */
     [ERROR_CODE_CCFG] =

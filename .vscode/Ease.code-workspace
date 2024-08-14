@@ -1,0 +1,21 @@
+{
+    "folders": [
+      {
+        "path": "ProjectA"
+      },
+      {
+        "path": "ProjectB"
+      }
+    ],
+    "settings": {
+      "intelephense.files.associations": [
+        "**/*.php",
+        "**/*.inc"
+      ],
+      "typescript.tsdk": "node_modules/typescript/lib",
+      "typescript.enablePromptUseWorkspaceTsdk": true,
+      "javascript.preferences.importModuleSpecifier": "relative",
+      "python.pythonPath": "path/to/python"
+    }
+  }
+  

@@ -26,6 +26,21 @@
         "spi_flash.h": "c",
         "esp_spi_flash.h": "c",
         "spi_flash_mmap.h": "c",
-        "chrono": "c"
-    }
+        "chrono": "c",
+        "esp_attr.h": "c",
+        "esp_app_format.h": "c",
+        "cjson.h": "c",
+        "rtc_wdt.h": "c",
+        "flash_op_private.h": "c",
+        "esp_adc_cal.h": "c",
+        "esp_adc_cal_types_legacy.h": "c",
+        "adc_types_legacy.h": "c",
+        "timers.h": "c",
+        "ringbuf.h": "c",
+        "system_attr.h": "c",
+        "esp_app_desc.h": "c",
+        "esp_assert.h": "c",
+        "app_desc.h": "c"
+    },
+    "python.REPL.enableREPLSmartSend": false
 }

@@ -11,12 +11,14 @@
 ////////////////////////////////////////////////
 ////////////// Helper macros /////////////////
 
+#define set 1 
+#define clear 0
 
 #define delay(x) (vTaskDelay(x/portTICK_PERIOD_MS))
 
 
 // packed attribute
-#define PACKED  __attribute__((__packed__))
+#define PACKED __packed
 
 #define UNUSED __unused
 
@@ -48,7 +50,7 @@
 /// @brief check the error and skip the process
 #define EXIT_IF_ERR(x)                                                                                                                       \
     if (x != ESP_OK)                                                                                                                       \
-    {                                                                                                                                      \
+    {ESP_LOGE(" ", "file %s line %d err %x", __FILE__, __LINE__, x);                                                                     \
         goto err;                                                                                                                          \
     }
 
@@ -91,15 +93,25 @@ enum
 {
     ERR_NONE =0,
     ERR_SYS_BASE = 0x01,
+    
+    // invalid things errors 
     ERR_SYS_INVALID_STATE,
     ERR_SYS_INVALID_PARAM,
-    ERR_SYS_TIMEOUT,
+    ERR_SYS_INVALID_DATA,
+    
+    // empty things errors 
     ERR_SYS_NO_RESOURCES,
+    ERR_SYS_EMPTY_MEM,
+    ERR_SYS_EMPTY_DATA,
+    ERR_SYS_NO_DATA,
+    
+    // fail things error
     ERR_SYS_OP_FAILED,
-    ERR_SYS_API_ERR,
     ERR_SYS_BOOT_FAIL,
+    ERR_SYS_API_ERR,
     ERR_SYS_APP_CRASH,
     ERR_SYS_FACTRY_RESET,
+    ERR_SYS_TIMEOUT,
     
     ERR_EEG_BASE = 100,
 	ERR_EEG_HARDWARE_FAULT,
@@ -119,11 +131,11 @@ enum
     ERR_ACCEL_BASE = 250,
 	ERR_ACCEL_HARDWARE_FAULT,
 
+    // OTA error base 
+    ERR_OTA_ERR_BASE = 300,
+
 };
 
-#define EEG_ERR_POSITION  8 
-#define TDCS_ERR_POSITION 16
-#define FUEL_GAUGE_ERR_POSITION 0
 
 ////////// enum to store status of the system 
 typedef enum __DEVICE_STATUS__
@@ -133,6 +145,7 @@ typedef enum __DEVICE_STATUS__
     STATUS_EEG_RUN,
     STATUS_TDCS,
     STATUS_OTA,
+    STATUS_DEVICE_RESTART,
     STATUS_PWR_OFF,
     
 }device_state_enum_t;
@@ -144,12 +157,15 @@ enum __DEVICE_COMMANDS__
 {
     DEV_STATE_NONE =1,
     DEV_STATE_IDLE,
+    DEV_STATE_BLE_READY,
     DEV_STATE_RUN_EEG,
     DEV_STATE_RUN_TDCS,
     DEV_STATE_STOP,
-    DEV_STATE_SWITCH_OTA,
     DEV_STATE_BLE_CONNECTED,
-    DEV_STATE_BLE_DISCONNECTED
+    DEV_STATE_BLE_DISCONNECTED,
+    DEV_STATE_SWITCH_OTA,
+    DEV_STATE_RESTART,
+    DEV_STATE_SHUTDOWN,
 
 };
 
@@ -175,7 +191,7 @@ enum __DEVICE_COMMANDS__
 #define PIN_TDCS_D1 GPIO_NUM_33
 #define PIN_TDCS_D2 GPIO_NUM_32 // reverse of schematic 
 
-#define TDCS_SPI_PORT 
+// #define TDCS_SPI_PORT 
 
 ////======================= EEG pins ===========================
 
@@ -190,12 +206,12 @@ enum __DEVICE_COMMANDS__
 
 // #define ads_ss_pinsel     GPIO_SEL_4
 // #define ads_ddry_pinsel   GPIO_SEL_39
-#define PINSEL_EEG_IC_EN GPIO_SEL_21
+// #define PINSEL_EEG_IC_EN GPIO_SEL_21
 // #define ads_reset_pinsel  GPIO_SEL_22
 /////////// define the ads max transfer size 
 #define PIN_EEG_MAX_BUFF_SIZE   32 //////// in bytes 
 
-#define EEG_SPI_PORT 
+// #define EEG_SPI_PORT 
 ////======================= Fuel gauge  pins ===========================
 
 
@@ -204,6 +220,12 @@ enum __DEVICE_COMMANDS__
 #define PIN_BATT_SCL GPIO_NUM_9
 #define BATT_I2C_PORT I2C_NUM_0
 
+
+// there could be errors from 4 system at max 
+#define SYS_ERRORS_MAX_NUMS 4 
+
+
+#define LED_DRV_WAIT_MAX_TIME (4000/portTICK_PERIOD_MS)  /// wait for 4 sec max for the driver 
 
 //////////////////////////////////////////////////////////////////////////
 ///////////////// Function definations /////////////////////////////////////

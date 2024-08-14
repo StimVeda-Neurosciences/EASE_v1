@@ -30,21 +30,15 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////       string and values for the devcie information //////////////////////////
 
-
-#define MANUFACTURER_NAME "Marbles.Health"
-
+#define GATT_MAX_ATTR_STRING_LEN 50
 
 #define CHAR_DECLARATION_SIZE (sizeof(uint8_t))
 
 #define DEVICE_NAME            "EASE"
-#define TEST_MANUFACTURER_DATA_LEN  17
 
 #define GATTS_DEMO_CHAR_VAL_LEN_MAX 200
 
 #define CHAR_VAL_SIZE (sizeof(uint8_t))
-
-
-#define PREPARE_BUF_MAX_SIZE 1024
 
 
 
@@ -88,6 +82,8 @@ enum
   HARDWARE_REVISION_VAL,
   FIRMWARE_REVISION_CHAR,
   FIRMWARE_REVISION_VAL,
+  DEVICE_NUMBER_CHAR,
+  DEVICE_NUMBER_VAL,
   DEVICE_INFO_NO_OF_ELE
 };
 
@@ -187,7 +183,14 @@ esp_err_t esp_ble_send_battery_data(uint8_t * data, uint16_t len);
 /// @brief send the err indication 
 /// @param err 
 /// @return succ/errcode
-esp_err_t esp_ble_send_err_indication(uint8_t err);
+esp_err_t esp_ble_send_err_indication(uint32_t err);
+
+
+/// @brief send the error array 
+/// @param error 
+/// @param size 
+/// @return succ/failure
+esp_err_t esp_ble_send_error_array(uint8_t *error, uint8_t size);
 
 /// @brief send the status to ble  
 /// @param status
@@ -210,7 +213,7 @@ void ble_disconnect_device(void);
 
 /// @brief start the communcation 
 /// @param taskhandle 
-void ble_start_communication(void * taskhandle);
+void ble_start_driver(void * taskhandle);
 
 /// @brief init the ble functionality 
 /// @param  

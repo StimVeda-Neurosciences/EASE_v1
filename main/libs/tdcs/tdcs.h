@@ -1,6 +1,6 @@
 #pragma once 
 
-#include "sys_attr.h"
+#include "system_attr.h"
 
 ////////////////////////////////////////////////////////////////////////////
 /////////////////// enum to store the tdcs ble opcode
@@ -72,7 +72,7 @@ void tdcs_start_prot(uint8_t waveform_type, uint16_t amplitude , uint32_t freque
 /// @brief verify the TDCS component 
 /// @param  void 
 /// @return err code
-uint8_t tdcs_verify_component(void);
+uint32_t tdcs_verify_component(void);
 
 /// @brief stop the TDCS protocol 
 /// @param  void 
@@ -130,7 +130,7 @@ uint32_t check_tdcs_protection(void);
 /// @brief get the current flowing through electrodes 
 /// @param  void 
 /// @return curernt flowing through 
- int tdcs_get_current_flowing(void);
+uint32_t tdcs_get_current_flowing(void);
 
 
 #define TDCS_ELECTRODES_OVERCURRENT_LIMIT 2300 //////refer to as 2.1v 
