@@ -268,7 +268,7 @@ void system_shutdown(void)
 void system_init(void)
 {
     ESP_LOGI(TAG,"sys init");
-    // install gpio isr service
+    // install isr service so  ALL the callbacks of the driver, and their callee functions, should be put in the IRAM.
     gpio_install_isr_service(ESP_INTR_FLAG_IRAM);
 
     //////// init all the system parameters
