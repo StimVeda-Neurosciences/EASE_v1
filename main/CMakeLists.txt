@@ -22,4 +22,4 @@ idf_component_register(SRCS ${src_files}
 
 target_compile_options(${COMPONENT_LIB} PUBLIC -Wno-format)
 
-target_link_libraries(${COMPONENT_LIB} "-u app_custom_desc")
+# target_link_libraries(${COMPONENT_LIB} "-u app_custom_desc")

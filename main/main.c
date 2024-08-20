@@ -694,7 +694,6 @@ void function_eeg_task(void* param)
 
     eeg_cmd->rate = (eeg_cmd->rate > 16) ? (eeg_cmd->rate - 16) : (eeg_cmd->rate);
 
-    ESP_LOGI(TAG, "rate %d,time till run%d\r\n", eeg_cmd->rate, eeg_cmd->timetill_run);
     //// send the status that eeg runs
     sys_send_stats_code(STATUS_EEG_RUN);
     esp_ble_send_status_indication(STATUS_EEG_RUN);
@@ -702,13 +701,15 @@ void function_eeg_task(void* param)
     ///////// init the eeg hardware
     uint64_t prev_milli = millis();
 
-    uint64_t no_of_samp = 0;
-    uint64_t act_no_of_samp;
+    uint32_t no_of_samp = 0;
+    uint32_t act_no_of_samp;
 
     // calculate the actual no of samples
-    act_no_of_samp = eeg_cmd->timetill_run / EEG_DATA_SENDING_TIME;
-
     led_driver_put_color(PURPLE_COLOR, COLOR_TIME_MAX);
+
+    act_no_of_samp = eeg_cmd->timetill_run / eeg_cmd->rate;
+    ESP_LOGI(TAG, "rate %d,time till run%d\r\n", eeg_cmd->rate, eeg_cmd->timetill_run);
+
 
     for (;;)
     {
@@ -721,15 +722,17 @@ void function_eeg_task(void* param)
                 // get all data in burst and send it
                 for (int i = 0; i < GET_NO_OF_SAMPLES(EEG_DATA_SENDING_TIME, eeg_cmd->rate); i++)
                 {
-                    xQueueReceive(eeg_data_q_handle, data_buff[i], 10);
+                    if(xQueueReceive(eeg_data_q_handle, data_buff[i], 10) != pdPASS)
+                    {assert(0);}
                 }
                 esp_ble_send_notif_eeg(data_buff, sizeof(data_buff));
-                no_of_samp ++;
+                no_of_samp += GET_NO_OF_SAMPLES(EEG_DATA_SENDING_TIME, eeg_cmd->rate) ;
+                printf("as %d\r\n",no_of_samp);
             }
             else
             {
                 // spend time in delay 
-                delay(20);
+                delay(10);
             //     wait_time +=40;
                 
             //     if(wait_time > EEG_NOTIF_WAIT_TIME)

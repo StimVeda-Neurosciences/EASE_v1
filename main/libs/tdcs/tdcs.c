@@ -163,7 +163,7 @@ void tdcs_driver_init(void)
       .quadwp_io_num = -1,
       .quadhd_io_num = -1, //// set the pins to -1 that are not in used
       .max_transfer_sz = tdcs_max_xfr_size,
-      .isr_cpu_id = APP_CPU,
+    //   .isr_cpu_id = APP_CPU,
       // .data0_io_num =-1,
       // .data1_io_num =-1,
       // .data2_io_num =-1,

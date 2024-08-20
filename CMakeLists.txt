@@ -15,9 +15,9 @@ idf_build_get_property(build_dir BUILD_DIR)
 
 set(python_file  ${CMAKE_CURRENT_SOURCE_DIR}/python/app_hdr_gen.py)
 
-add_custom_command(TARGET app 
-                    POST_BUILD 
-                    COMMAND ${CMAKE_COMMAND} -E echo "modifying app header with python "
-                    COMMAND python ${python_file} ease_app.bin
-                    WORKING_DIRECTORY ${build_dir}
-                    VERBATIM)   
+# add_custom_command(TARGET app 
+#                     POST_BUILD 
+#                     COMMAND ${CMAKE_COMMAND} -E echo "modifying app header with python "
+#                     COMMAND python ${python_file} ease_app.bin
+#                     WORKING_DIRECTORY ${build_dir}
+#                     VERBATIM)   

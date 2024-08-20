@@ -126,6 +126,7 @@ static void IRAM_ATTR gpio_isr_hand(void* param)
 static void init_ads_pin(void)
 {
 
+
     /////////////////////init the ads enable pin
     gpio_set_direction(PIN_EEG_IC_EN, GPIO_MODE_OUTPUT);
     ////////////////// reset pin of ads
@@ -133,9 +134,22 @@ static void init_ads_pin(void)
     /////////////////// chip select pin of ads
     gpio_set_direction(PIN_EEG_CS, GPIO_MODE_OUTPUT);
     //////////////////////// data ready pin of ads
+
+
+    static const gpio_config_t io_config = {
+        .intr_type = GPIO_INTR_NEGEDGE,
+        .pin_bit_mask = (1ULL << (PIN_EEG_DRDY_INTR) ), 
+        .mode = GPIO_MODE_INPUT,
+        .pull_up_en = 1,
+        .pull_down_en = 0,
+
+    };
+    gpio_config(&io_config);
+
     gpio_set_direction(PIN_EEG_DRDY_INTR, GPIO_MODE_INPUT);
     //////////////// set the pin to floating
     gpio_set_pull_mode(PIN_EEG_DRDY_INTR, GPIO_PULLUP_ONLY);
+    gpio_pullup_en(PIN_EEG_DRDY_INTR);
 
     ////////// set the pin to high
     gpio_set_level(PIN_EEG_IC_RESET, 1);
@@ -146,7 +160,7 @@ static void init_ads_pin(void)
 
     ///////////// init the intrupt routine
     ///////// set the intr type to falling edge
-    gpio_set_intr_type(PIN_EEG_DRDY_INTR, GPIO_INTR_NEGEDGE);
+    // gpio_set_intr_type(PIN_EEG_DRDY_INTR, );
     ///////// add the isr
     gpio_isr_handler_add(PIN_EEG_DRDY_INTR, gpio_isr_hand, NULL);
     ///////////////// dont trigger the interrupt after configure the eeg ic
@@ -218,6 +232,8 @@ void eeg_driver_init(void)
 void eeg_driver_deinit(void)
 {
     ESP_LOGW(TAG, "deinitng EEG driver");
+    gpio_isr_handler_remove(PIN_EEG_DRDY_INTR);
+
     spi_bus_remove_device(vspi_handle);
     spi_bus_free(VSPI_HOST);
     vQueueDelete(eeg_q_handle);
@@ -331,6 +347,7 @@ void* eeg_start_reading(uint8_t rate, uint8_t reading_type)
     xQueueReset(eeg_q_handle);
 
     eeg_ic_inited = true;
+    delay(20);
     /////////////// enable the intr
     gpio_intr_enable(PIN_EEG_DRDY_INTR);
     return eeg_q_handle;

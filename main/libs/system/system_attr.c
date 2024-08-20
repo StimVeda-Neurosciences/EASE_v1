@@ -265,11 +265,13 @@ void system_shutdown(void)
     esp_deep_sleep_start();
 }
 
+#define ESP_INTR_FLAG_DEFAULT 0
+
 void system_init(void)
 {
     ESP_LOGI(TAG,"sys init");
     // install isr service so  ALL the callbacks of the driver, and their callee functions, should be put in the IRAM.
-    gpio_install_isr_service(ESP_INTR_FLAG_IRAM);
+    gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT);
 
     //////// init all the system parameters
     create_err_queue();
