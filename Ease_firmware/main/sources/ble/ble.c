@@ -559,7 +559,7 @@ void gatts_events_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, es
     } break;
     case ESP_GATTS_READ_EVT: {
       ESP_LOGI(GATTS_TAG,
-               "GATT_READ_EVT, gatt_interface  %d, trans_id %ld, handle %d\n",
+               "GATT_READ_EVT, gatt_interface  %d, trans_id %d, handle %d\n",
                gatts_if,
                param->read.trans_id,
                param->read.handle);

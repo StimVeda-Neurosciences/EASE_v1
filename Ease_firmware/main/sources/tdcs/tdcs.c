@@ -240,7 +240,7 @@ static uint16_t get_tdc(uint8_t reg_addr)
 
 ///////// tdcs alarm interrupt pin
 
-static void IRAM_ATTR tdcs_alarm_irq_hand(void)
+static void IRAM_ATTR tdcs_alarm_irq_hand(void * cntxt)
 {
     /////////// high task wokn = false so to avoid context switching
     // BaseType_t high_task_awoken = pdFALSE;
@@ -738,7 +738,7 @@ void run_tdcs(void)
 
         ///////// send the measured and set crrent
         esp_ble_send_notif_tdcs_curr(u8(measured_imp), s(measured_imp));
-        printf("rampup set_current %d measure%ld\r\n", measured_imp.set_curent, measured_imp.measured_current);
+        printf("rampup set_current %d measure%d\r\n", measured_imp.set_curent, measured_imp.measured_current);
 
         if (set_curr >= max_set_current)
         {
@@ -757,7 +757,7 @@ void run_tdcs(void)
 
         ///////// send the measured and set crrent
         esp_ble_send_notif_tdcs_curr(u8(measured_imp), s(measured_imp));
-        printf("constant set_current %d measure%ld\r\n", measured_imp.set_curent, measured_imp.measured_current);
+        printf("constant set_current %d measure%d\r\n", measured_imp.set_curent, measured_imp.measured_current);
 
         if ((millis() - prev_milli_) >= time_till_waveform_run)
         {
@@ -775,7 +775,7 @@ void run_tdcs(void)
 
         ///////// send the measured and set crrent
         esp_ble_send_notif_tdcs_curr(u8(measured_imp), s(measured_imp));
-        printf("rampdown set_current %d measure%ld\r\n", measured_imp.set_curent, measured_imp.measured_current);
+        printf("rampdown set_current %d measure%d\r\n", measured_imp.set_curent, measured_imp.measured_current);
 
         set_Current(set_curr);
 

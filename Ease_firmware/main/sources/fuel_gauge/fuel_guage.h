@@ -6,7 +6,8 @@
 
 #include "sdkconfig.h" /// this include all the esp32 settings and configurations that are configure through menuconfig
 #include "esp_system.h"
-#include "spi_flash_mmap.h"
+#include "esp_flash.h"
+#include "esp_spi_flash.h"
 
 #include "driver/i2c.h"
 
