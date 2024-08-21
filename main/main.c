@@ -722,8 +722,7 @@ void function_eeg_task(void* param)
                 // get all data in burst and send it
                 for (int i = 0; i < GET_NO_OF_SAMPLES(EEG_DATA_SENDING_TIME, eeg_cmd->rate); i++)
                 {
-                    if(xQueueReceive(eeg_data_q_handle, data_buff[i], 10) != pdPASS)
-                    {assert(0);}
+                    xQueueReceive(eeg_data_q_handle, &data_buff[i], 10);
                 }
                 esp_ble_send_notif_eeg(data_buff, sizeof(data_buff));
                 no_of_samp += GET_NO_OF_SAMPLES(EEG_DATA_SENDING_TIME, eeg_cmd->rate) ;
