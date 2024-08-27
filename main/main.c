@@ -118,18 +118,21 @@ void app_main(void)
     eeg_driver_init();
     //// init the tdcs spi bus
     tdcs_driver_init();
-    //// init the fuel gauge bus
+    // //// init the fuel gauge bus
     batt_driver_init();
-    // led driver init
+    // // led driver init
     led_driver_init();
-    // flash_op_driver_init
+    // // flash_op_driver_init
     flash_op_driver_init();
-    /////////init the ble module
+    // /////////init the ble module
     ble_driver_init();
 
-    // start the esp timer
+    
+    // // start the esp timer
     esp_start_timer();
+    
 
+ 
     // create the task that handle the state and action
     /////// create the general task that will handle the communication and creaate new task
     general_tsk_handle = xTaskCreateStaticPinnedToCore(generaltask,
@@ -161,9 +164,10 @@ void app_main(void)
     ESP_LOGI(TAG, "the free heap memory is %ld", heap_caps_get_free_size(MALLOC_CAP_DEFAULT));
     ESP_LOGI(TAG, "the image size %d", app_custom_desc.app_desc.app_size);
 
-    // the general task start immediately, and its handle doesn't init at that moment
+    // // the general task start immediately, and its handle doesn't init at that moment
     ble_start_driver(general_tsk_handle);
     // stop the watchdog timer
+    
     esp_stop_bootloader_watchdog();
 
     // suspend itself
@@ -209,7 +213,7 @@ void generaltask(void* param)
 
     /// structure for the tdcs
     tdcs_cmd_struct_t tdcs_cmd = {0};
-    eeg_cmd_struct_t eeg_cmd = {0};
+    eeg_cmd_struct_t eeg_cmd = {2, 12};
     ///// while loop
     for (;;)
     {
@@ -310,7 +314,7 @@ void generaltask(void* param)
             break;
             case DEV_STATE_BLE_READY:
             {
-                // ble adpater only ready after device restart , so start the wainting task for advertisement
+                    // ble adpater only ready after device restart , so start the wainting task for advertisement
                 vTaskResume(waiting_task_handle);
                 ESP_LOGW(TAG, "Device BLE ready ");
                 device_state = DEV_STATE_BLE_DISCONNECTED;
@@ -679,7 +683,7 @@ void function_eeg_task(void* param)
     // convert the time in milliseconds
     eeg_cmd->timetill_run *= 1000;
 
-    err = eeg_verify_component();
+    // err = eeg_verify_component();
     /////////// if some error is encountered then send it to phone
     if (err != ERR_NONE)
     {
@@ -694,6 +698,7 @@ void function_eeg_task(void* param)
 
     eeg_cmd->rate = (eeg_cmd->rate > 16) ? (eeg_cmd->rate - 16) : (eeg_cmd->rate);
 
+    ESP_LOGI(TAG, "time %d", eeg_cmd->timetill_run);
     //// send the status that eeg runs
     sys_send_stats_code(STATUS_EEG_RUN);
     esp_ble_send_status_indication(STATUS_EEG_RUN);
@@ -708,7 +713,6 @@ void function_eeg_task(void* param)
     led_driver_put_color(PURPLE_COLOR, COLOR_TIME_MAX);
 
     act_no_of_samp = eeg_cmd->timetill_run / eeg_cmd->rate;
-    ESP_LOGI(TAG, "rate %d,time till run%d\r\n", eeg_cmd->rate, eeg_cmd->timetill_run);
 
 
     for (;;)
@@ -725,13 +729,10 @@ void function_eeg_task(void* param)
                     xQueueReceive(eeg_data_q_handle, &data_buff[i], 10);
                 }
                 esp_ble_send_notif_eeg(data_buff, sizeof(data_buff));
-                no_of_samp += GET_NO_OF_SAMPLES(EEG_DATA_SENDING_TIME, eeg_cmd->rate) ;
-                printf("as %d\r\n",no_of_samp);
+                no_of_samp += GET_NO_OF_SAMPLES(EEG_DATA_SENDING_TIME, eeg_cmd->rate);
             }
-            else
-            {
                 // spend time in delay 
-                delay(10);
+            delay(20);
             //     wait_time +=40;
                 
             //     if(wait_time > EEG_NOTIF_WAIT_TIME)
@@ -747,11 +748,6 @@ void function_eeg_task(void* param)
             //         }
             //         wait_time =0;
             //     }
-            }
-        }
-        else 
-        {
-            delay(100);
         }
 
         //// check the battery charging here

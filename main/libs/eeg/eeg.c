@@ -283,6 +283,9 @@ void* eeg_start_reading(uint8_t rate, uint8_t reading_type)
     eeg_reset_ic(soft_reset);
     delay(200);
 
+    
+    ESP_LOGI(TAG, "rate %d,reading type%d\r\n", rate, reading_type);
+
     //////////// set the ads data rate
     if (rate == 2)
         send_ads(CONFIG1, 0xD5); // No Daisy, Osc. Clock output disabled, 250Hz

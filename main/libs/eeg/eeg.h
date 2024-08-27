@@ -74,7 +74,7 @@ typedef struct __EEG_CMD_STRUCTURE__
 }PACKED eeg_cmd_struct_t;
 
 
-#define GET_NO_OF_SAMPLES(time,rate) (time/rate)
+#define GET_NO_OF_SAMPLES(time,rate) ((time)/(rate))
 
 #define EEG_DATA_SENDING_TIME 40 // 40 millisecond 
 
