@@ -26,9 +26,9 @@ void eeg_driver_deinit(void);
 /// @brief start the EEG reading  with below param  
 /// @param  rate
 /// @param  reading_type
-/// @param  eeg_Taskhandle
-/// @return Quehandle 
-void * eeg_start_reading(uint8_t rate, uint8_t reading_type );
+/// @param  Qhandle
+/// @return succ/failure 
+uint32_t eeg_start_reading(uint8_t rate, uint8_t reading_type, void ** q_handle );
 
 /// @brief stop the ic reading and maybe powerdown the ic 
 /// @param  void 

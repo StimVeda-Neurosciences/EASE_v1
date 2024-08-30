@@ -79,6 +79,7 @@ static StaticTask_t waiting_task_tcb;
 
 static TaskHandle_t waiting_task_handle = NULL;
 
+
 ///+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++////
 /// create a timer buffer
 static StaticTimer_t timer_mem_buffer;
@@ -683,8 +684,11 @@ void function_eeg_task(void* param)
     // convert the time in milliseconds
     eeg_cmd->timetill_run *= 1000;
 
-    // err = eeg_verify_component();
     /////////// if some error is encountered then send it to phone
+
+    err = eeg_start_reading(((eeg_cmd->rate > 16) ? (eeg_cmd->rate - 16) : (eeg_cmd->rate)),
+                                          ((eeg_cmd->rate > 16) ? READING_EEG_WITH_IMP : READING_EEG_ONLY), 
+                                          &eeg_data_q_handle);
     if (err != ERR_NONE)
     {
         color = RED_COLOR;
@@ -692,13 +696,9 @@ void function_eeg_task(void* param)
         err_code = err;
         goto return_mech;
     }
-
-    eeg_data_q_handle = eeg_start_reading(((eeg_cmd->rate > 16) ? (eeg_cmd->rate - 16) : (eeg_cmd->rate)),
-                                          ((eeg_cmd->rate > 16) ? READING_EEG_WITH_IMP : READING_EEG_ONLY));
-
     eeg_cmd->rate = (eeg_cmd->rate > 16) ? (eeg_cmd->rate - 16) : (eeg_cmd->rate);
 
-    ESP_LOGI(TAG, "time %d", eeg_cmd->timetill_run);
+    ESP_LOGI(TAG, "rate %d, time %d",eeg_cmd->rate ,eeg_cmd->timetill_run);
     //// send the status that eeg runs
     sys_send_stats_code(STATUS_EEG_RUN);
     esp_ble_send_status_indication(STATUS_EEG_RUN);
@@ -714,7 +714,8 @@ void function_eeg_task(void* param)
 
     act_no_of_samp = eeg_cmd->timetill_run / eeg_cmd->rate;
 
-
+    uint32_t prev_drdy_milli = millis();
+    bool eeg_sent =0;
     for (;;)
     {
         // only send the required number of samples
@@ -730,9 +731,8 @@ void function_eeg_task(void* param)
                 }
                 esp_ble_send_notif_eeg(data_buff, sizeof(data_buff));
                 no_of_samp += GET_NO_OF_SAMPLES(EEG_DATA_SENDING_TIME, eeg_cmd->rate);
+                eeg_sent =1;
             }
-                // spend time in delay 
-            delay(20);
             //     wait_time +=40;
                 
             //     if(wait_time > EEG_NOTIF_WAIT_TIME)
@@ -750,6 +750,22 @@ void function_eeg_task(void* param)
             //     }
         }
 
+        delay(20);
+
+        if((millis() - prev_drdy_milli) > EEG_NOTIF_WAIT_TIME)
+        {
+            // check the error 
+            if(!eeg_sent )
+            {
+                color = RED_COLOR;
+                ESP_LOGE(TAG, "Drdy error triggered");
+                sys_send_err_code(ERR_EEG_SYSTEM_FAULT);
+                err_code = ERR_EEG_SYSTEM_FAULT;
+                goto return_mech;
+            }
+            eeg_sent =0;
+            prev_drdy_milli = millis();
+        }
         //// check the battery charging here
         if (batt_get_chg_status() == BATT_CHARGING)
         {

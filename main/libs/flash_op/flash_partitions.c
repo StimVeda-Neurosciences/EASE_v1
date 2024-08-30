@@ -251,6 +251,7 @@ esp_err_t esp_write_flash(size_t addr,const void *buffer, uint32_t len, bool enc
     {
         return esp_flash_write_encrypted(NULL,addr,buffer,len);
     }
+    printf("arvide\r\n");
     return esp_flash_write(NULL,buffer,addr,len);
 }
 
@@ -267,4 +268,16 @@ esp_err_t esp_read_flash(size_t addr,void * buffer, size_t len, bool encrypted)
         return esp_flash_read_encrypted(NULL,addr,buffer,len);
     }
     return esp_flash_read(NULL,buffer,addr,len);
+}
+
+
+
+/// @brief this method you can write the data at protected region , note only write non encrypted data
+/// @param address 
+/// @param buffer 
+/// @param length 
+/// @return succ/failure
+esp_err_t esp_write_flash_dangerous(uint32_t address,const void *buffer, uint32_t length)
+{
+    return esp_flash_write_dangerous(NULL, buffer, address, length );
 }

@@ -7,7 +7,6 @@
 #include "driver/spi_master.h"
 #include "driver/spi_common.h"
 
-
 #include "driver/gpio.h"
 
 #include "freertos/FreeRTOS.h"
@@ -27,8 +26,6 @@ static bool eeg_ic_inited = 0;
 
 ///////////// tdcs spi handle
 static spi_device_handle_t vspi_handle = NULL;
-
-
 
 /// @brief get the device ID
 /// @param  void
@@ -126,7 +123,6 @@ static void IRAM_ATTR gpio_isr_hand(void* param)
 static void init_ads_pin(void)
 {
 
-
     /////////////////////init the ads enable pin
     gpio_set_direction(PIN_EEG_IC_EN, GPIO_MODE_OUTPUT);
     ////////////////// reset pin of ads
@@ -135,13 +131,12 @@ static void init_ads_pin(void)
     gpio_set_direction(PIN_EEG_CS, GPIO_MODE_OUTPUT);
     //////////////////////// data ready pin of ads
 
-
     static const gpio_config_t io_config = {
-        .intr_type = GPIO_INTR_NEGEDGE,
-        .pin_bit_mask = (1ULL << (PIN_EEG_DRDY_INTR) ), 
-        .mode = GPIO_MODE_INPUT,
-        .pull_up_en = 1,
-        .pull_down_en = 0,
+      .intr_type = GPIO_INTR_NEGEDGE,
+      .pin_bit_mask = (1ULL << (PIN_EEG_DRDY_INTR)),
+      .mode = GPIO_MODE_INPUT,
+      .pull_up_en = 1,
+      .pull_down_en = 0,
 
     };
     gpio_config(&io_config);
@@ -273,18 +268,29 @@ uint32_t eeg_verify_component(void)
 /// @param  rate
 /// @param  reading_type
 /// @param taskhandle
-void* eeg_start_reading(uint8_t rate, uint8_t reading_type)
+/// @return succ/failure
+uint32_t eeg_start_reading(uint8_t rate, uint8_t reading_type, void** Q_handle)
 {
 
     /// @brief ///// enable the ads module
     gpio_set_level(PIN_EEG_IC_EN, 1);
-    delay(200);
+    delay(300);
     ads_cmd(_WAKEUP);
     eeg_reset_ic(soft_reset);
-    delay(200);
+    delay(250);
 
-    
-    ESP_LOGI(TAG, "rate %d,reading type%d\r\n", rate, reading_type);
+    // get device id
+    if (get_DeviceID() != ADS_DEVICE_ID)
+    {
+        *Q_handle = NULL;
+        ///////// put the ads in power down mode
+        ads_cmd(_STANDBY);
+        ads_cmd(_SDATAC);
+
+        /// @brief ///// disable the ads module
+        gpio_set_level(PIN_EEG_IC_EN, 0);
+        return ERR_EEG_HARDWARE_FAULT;
+    }
 
     //////////// set the ads data rate
     if (rate == 2)
@@ -353,7 +359,9 @@ void* eeg_start_reading(uint8_t rate, uint8_t reading_type)
     delay(20);
     /////////////// enable the intr
     gpio_intr_enable(PIN_EEG_DRDY_INTR);
-    return eeg_q_handle;
+
+    *Q_handle = eeg_q_handle;
+    return ESP_OK;
 }
 
 /// @brief stop the ic reading and maybe powerdown the ic

@@ -31,7 +31,7 @@ static const uint16_t client_charcater_config_uuid = ESP_GATT_UUID_CHAR_CLIENT_C
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 static const UNUSED uint8_t char_w_notify = ESP_GATT_CHAR_PROP_BIT_WRITE | ESP_GATT_CHAR_PROP_BIT_NOTIFY;
 static const UNUSED uint8_t char_prop_write = ESP_GATT_CHAR_PROP_BIT_WRITE;
-// static const uint8_t char_prop_r_w = ESP_GATT_CHAR_PROP_BIT_READ | ESP_GATT_CHAR_PROP_BIT_WRITE;
+static const UNUSED uint8_t char_prop_r_w = ESP_GATT_CHAR_PROP_BIT_READ | ESP_GATT_CHAR_PROP_BIT_WRITE;
 static const UNUSED uint8_t char_prop_read = ESP_GATT_CHAR_PROP_BIT_READ;
 static const UNUSED uint8_t char_prop_r_notify = ESP_GATT_CHAR_PROP_BIT_READ | ESP_GATT_CHAR_PROP_BIT_NOTIFY;
 
@@ -108,12 +108,12 @@ const esp_gatts_attr_db_t device_info_db_table[DEVICE_INFO_NO_OF_ELE] =
                                     char_start_val}},
 
         [DEVICE_NUMBER_CHAR] = {{ESP_GATT_AUTO_RSP},
-                                {ESP_UUID_LEN_16, u8_ptr(character_declaration_uuid), ESP_GATT_PERM_READ, _1byte, _1byte, u8_ptr(char_prop_read)}},
+                                {ESP_UUID_LEN_16, u8_ptr(character_declaration_uuid), ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE, _1byte, _1byte, u8_ptr(char_prop_r_w)}},
 
         [DEVICE_NUMBER_VAL] =     {{ESP_GATT_RSP_BY_APP},
                                     {ESP_UUID_LEN_16,
                                     u8_ptr(device_number_char),
-                                    ESP_GATT_PERM_READ,
+                                    ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
                                     MAX_ATTRIBUTE_SIZE,
                                     _1byte,
                                     char_start_val}},

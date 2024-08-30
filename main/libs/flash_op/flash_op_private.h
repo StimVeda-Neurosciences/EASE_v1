@@ -90,3 +90,11 @@ esp_err_t esp_write_flash(size_t addr,const void *buffer, uint32_t len, bool enc
 /// @param encrypted 
 /// @return 
 esp_err_t esp_read_flash(size_t addr,void * buffer, size_t len, bool encrypted);
+
+
+/// @brief this method you can write the data at protected region , note only write non encrypted data
+/// @param address 
+/// @param buffer 
+/// @param length 
+/// @return succ/failure
+esp_err_t esp_write_flash_dangerous(uint32_t address,const void *buffer, uint32_t length);

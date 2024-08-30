@@ -11,6 +11,8 @@ import json
 import hashlib
 import binascii
 
+import os 
+
 
 RED = '\033[91m'
 GREEN = '\033[92m'
@@ -190,12 +192,12 @@ def bin_write_app_desc_custom_data(app_data:dict):
     # packed_data = packed_data.ljust(100, b'\x00')  # Ensure it's 100 bytes long
 
     # create a custom struct to store raw bytes 
-    raw_bytes_format = '>20I'
+    raw_bytes_format = '>10I'
     
     print(app_data)
     json_str = json.dumps(app_data) 
     data_bytes = json_str.rstrip('}').encode('utf-8') + ", \"DEVICE NUM\" : ".encode('utf-8') + \
-            struct.pack(raw_bytes_format, *[0xFFFFFFFF] * 20) + '}\0'.encode('utf-8')
+            struct.pack(raw_bytes_format, *[0xFFFFFFFF] * 10) + '}\0'.encode('utf-8')
     
     # app_hdr_data =  (str(app_data) + "\0").encode('utf-8')
      
@@ -269,7 +271,8 @@ def write_and_read_image_hash(image_len):
 
 app_data_json = {"HARDWARE VER": "234SD" ,
     "SERIAL NUM": "3we61206023","FIRMWARE VER": "V3.2.4",
-    "MANUF. NAME": "Marbles.Health"}
+    "MANUF. NAME": "Marbles.Health", "APP_NAME" : os.environ.get('APPLICATION_NAME', 'EASE')}
+
 
 
 

@@ -58,15 +58,23 @@ typedef enum __APP_INFO_INDEX__
     flash_app_info_Hardware_num,
     flash_app_info_serial_num,
     flash_app_info_firmware_num,
-    flash_app_info_device_num,
-    flash_app_info_app_name,
     flash_app_info_app_manuf_name,
+    flash_app_info_app_name,
+    flash_app_info_device_num,
+    flash_app_info_max, 
 
 }flash_app_info_index_t;
 
-
+static const char * app_info_str[] = {"HARDWARE VER","SERIAL NUM",
+                                        "FIRMWARE VER","MANUF. NAME","APP_NAME", "DEVICE NUM"};
 
 /// @brief get the input string from the flash/DROM 
 /// @param  void 
 /// @return hardware revision string
 const char * flash_app_get_info(flash_app_info_index_t index);
+
+/// @brief this method helps in writing the custom info to the metadata 
+/// @param index 
+/// @param data 
+/// @param len 
+void flash_app_write_info(uint8_t index, const uint8_t * data ,uint8_t len);
