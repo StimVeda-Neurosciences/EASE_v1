@@ -251,7 +251,6 @@ esp_err_t esp_write_flash(size_t addr,const void *buffer, uint32_t len, bool enc
     {
         return esp_flash_write_encrypted(NULL,addr,buffer,len);
     }
-    printf("arvide\r\n");
     return esp_flash_write(NULL,buffer,addr,len);
 }
 
