@@ -459,16 +459,10 @@ void flash_app_write_info(uint8_t index, const uint8_t *data, uint8_t len)
 
     uint8_t mem[MAX_LEN_OF_KEY_ATTR];
 
-    printf("ths %s offset %d, final offsert %x \r\n",str, find_offset_in_json((const char*) app_custom_desc.app_extra_mem, str), offset);
+    // printf("ths %s offset %d, final offsert %x \r\n",str, find_offset_in_json((const char*) app_custom_desc.app_extra_mem, str), offset);
     // read data from that
     esp_read_flash(offset, mem, MAX_LEN_OF_KEY_ATTR - 1, false);
 
-    
-    for(int i=0;i<MAX_LEN_OF_KEY_ATTR; i++)
-    {
-        printf("%c",mem[i]);
-    }
-    printf("\r\n");
     // check the valid transitions
     for (int i = 0; i < len; i++)
     {
@@ -485,17 +479,17 @@ void flash_app_write_info(uint8_t index, const uint8_t *data, uint8_t len)
     // write the info to the application
     len +=2;
     len = (len %2)?len+1:len;
-    printf("wr_at %x len %d", offset, len);
+    // printf("wr_at %x len %d", offset, len);
     esp_write_flash_dangerous(offset, mem, len);
 
     // read data from that
-    esp_read_flash(offset, mem, MAX_LEN_OF_KEY_ATTR - 1, false);
+    // esp_read_flash(offset, mem, MAX_LEN_OF_KEY_ATTR - 1, false);
 
-    for(int i=0;i<MAX_LEN_OF_KEY_ATTR; i++)
-    {
-        printf("%c",mem[i]);
-    }
-    printf("\r\n");
+    // for(int i=0;i<MAX_LEN_OF_KEY_ATTR; i++)
+    // {
+    //     printf("%c",mem[i]);
+    // }
+    // printf("\r\n");
 
     // we have to restaert the system afterwards 
     system_restart();

@@ -270,7 +270,7 @@ def write_and_read_image_hash(image_len):
 
 
 app_data_json = {"HARDWARE VER": "234SD" ,
-    "SERIAL NUM": "3we61206023","FIRMWARE VER": "V3.2.4",
+    "SERIAL NUM": "3we61206023","FIRMWARE VER": os.environ.get('APPLICATION_VERSION', '1.0.1'),
     "MANUF. NAME": "Marbles.Health", "APP_NAME" : os.environ.get('APPLICATION_NAME', 'EASE')}
 
 

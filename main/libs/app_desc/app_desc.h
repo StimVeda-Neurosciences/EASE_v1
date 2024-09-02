@@ -9,7 +9,7 @@
 // =================================================================================
 #define APP_DESCRIPTOR_VERSION "1.0.0"
 
-#define APP_VERSION "1.0.0"
+#define APP_VERSION "1.1.0"
 
 #define APP_NAME "EASE_APP"
 
