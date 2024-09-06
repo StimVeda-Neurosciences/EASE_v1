@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 
-set(APPLICATION_VERSION 1.1.0)
+set(APPLICATION_VERSION 1.2.2)
 
 project(ease_app)
 
