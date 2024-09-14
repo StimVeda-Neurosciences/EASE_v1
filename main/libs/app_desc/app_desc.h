@@ -14,9 +14,9 @@
 #define APP_NAME "EASE_APP"
 
 /// @brief extract the version from the app_descriptor version
-#define VERSION_MAJOR(x) (x[0])
-#define VERSION_MINOR(x) (x[2])
-#define VERSION_PATCH(x) (x[4])
+#define VERSION_MAJOR(x) (x[0]-'0')
+#define VERSION_MINOR(x) (x[2]-'0')
+#define VERSION_PATCH(x) (x[4]-'0')
 #define VERSION_FIX(x)   (0)
 
 #define APP_NAME_MAX_LEN 32
