@@ -97,8 +97,6 @@ esp_err_t flash_op_switch_to_dfu(void)
         err = esp_read_flash_ota_data(&partition_pos, &temp_data);
         EXIT_IF_ERR(err);
 
-        esp_flash_print_otadata(&temp_data, sizeof(temp_data));
-
         // get the dfu boot partition index
         err = esp_get_dfu_boot_partition(&temp_data);
         EXIT_IF_ERR(err);
@@ -106,6 +104,9 @@ esp_err_t flash_op_switch_to_dfu(void)
         err = esp_flash_write_ota_data(&partition_pos, &temp_data);
         EXIT_IF_ERR(err);
     }
+    
+    // print the otametadata
+    esp_flash_print_otadata(&temp_data, sizeof(temp_data));
 
     return ESP_OK;
 err:
