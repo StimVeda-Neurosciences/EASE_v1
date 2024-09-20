@@ -26,8 +26,8 @@ static const char* TAG = "main";
 
 #define ESP_BATT_CRITICAL_SOC 2
 
-#define IDLE_STATE_WAIT_TIME                                                                                                               \
-    (1000 * 30 * 1) // 2 minutes
+#define DEVICE_ADV_TIME                                                                                                               \
+    (1000 * 60 * 5) // 5 minutes
                     //////// structure to store the tdcs message content format
 
 typedef uint32_t (*errors)(void);
@@ -464,7 +464,7 @@ device_adv_state:
     /// start the advertisement
     //// it is assumed that the device must be in the ideal state before entering here
     ble_start_advertise();
-    led_driver_blink_color(YELLOW_COLOR, BLINK_TIME_BOTH(500, 500, IDLE_STATE_WAIT_TIME));
+    led_driver_blink_color(YELLOW_COLOR, BLINK_TIME_BOTH(500, 500, DEVICE_ADV_TIME));
     prev_milli = millis();
     for (;;)
     {
@@ -472,7 +472,7 @@ device_adv_state:
         delay(100);
         if (*dev_state == DEV_STATE_BLE_DISCONNECTED)
         {
-            if ((millis() - prev_milli) > IDLE_STATE_WAIT_TIME)
+            if ((millis() - prev_milli) > DEVICE_ADV_TIME)
             {
                 blink_time = 5;
                 goto dev_terminate;
