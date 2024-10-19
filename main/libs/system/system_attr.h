@@ -114,17 +114,17 @@ enum
     ERR_SYS_TIMEOUT,
     
     ERR_EEG_BASE = 100,
-	ERR_EEG_HARDWARE_FAULT,
-    ERR_EEG_SYSTEM_FAULT,
+	ERR_EEG_HARDWARE_FAULT,  /// device id is missing/ or hardware connection fault
+    ERR_EEG_SYSTEM_FAULT,      //// drdy signal is not triggering, 
 	
     ERR_TDCS_BASE = 150,
-	ERR_TDCS_HARDWARE_FAULT,
-	ERR_TDCS_HRD_OVERCURRENT,
+	ERR_TDCS_HARDWARE_FAULT,    //// TDCS connection fault
+	ERR_TDCS_HRD_OVERCURRENT,   /// ovecurent triggerd 
 	ERR_TDCS_SOFT_OVERCURRENT,
     ERR_TDCS_ELECTRODES_OPEN,
 	
     ERR_BATT_BASE = 200,
-    ERR_BATT_HARDWARE_FAULT,
+    ERR_BATT_HARDWARE_FAULT,  /// connection fault, 
 	ERR_BATT_CHG_IN_PROTOCOL,
     ERR_BATT_CRITICAL_LOW,
 
@@ -132,7 +132,7 @@ enum
 	ERR_ACCEL_HARDWARE_FAULT,
 
     // OTA error base 
-    ERR_OTA_ERR_BASE = 300,
+    ERR_OTA_ERR_BASE = 300,  /// ota regarding error start from here 
 
 };
 
